@@ -1,38 +1,7 @@
 -- LICENSE.md
 print(game:HttpGet("https://raw.githubusercontent.com/scriptrblxs/PyyScripts/refs/heads/main/LICENSE.md"))
 
-local function notif(msg)
-    game:GetService("StarterGui"):SetCore("SendNotification", {
-        Title = "Reawakened KJ",
-        Text = msg
-    })
-end
-
--- Premium Check
-local verified = {
-    "oioioibaaka828828",
-    "skibidiSigm192919",
-}
-if not table.find(verified, game.Players.LocalPlayer.Name) and not table.find(game:GetService("HttpService"):JSONDecode(game:HttpGet("https://raw.githubusercontent.com/Mukuro-Hoshimiya/Whitelist/refs/heads/main/whitelist.json")).whitelist, game.Players.LocalPlayer.Name) then
-notif("Premium checking, may take a while...")
-httpserv = game:GetService"HttpService"
-local keypoint = "https://pyy-api.glitch.me/v1/getpremiums"
-repeat task.wait(5) until game:HttpGet(keypoint)
-local data = httpserv:JSONDecode(game:HttpGet(keypoint))
-local isValid = false
-for _, v in pairs(data) do
-    local suc, id = pcall(function()
-        return game.Players:GetDataFromUsernameAsync(v)
-    end)
-    if id == game.Players.LocalPlayer.UserId then
-        isValid = true
-    end
-end
-if not isValid then game.Players.LocalPlayer:Kick("User is detected not to be a premium user while using premium script!") end
-end
-
 local lplr = game.Players.LocalPlayer
-
 local char = lplr.Character or lplr.CharacterAdded:Wait()
 
 -- Object Removers (will remove vfx on the weapons, though)
@@ -127,10 +96,10 @@ local newAnimations = {
     move2 = "16945550029", -- Replace with your new move 2 animation ID
     move3 = "16944265635", -- Replace with your new move 3 animation ID
     move4 = "17325254223", -- Replace with your new move 4 animation ID
-    amove1 = "76530443909428", -- Replace with your new move awakening 1 animation ID
-    amove2 = "12983333733", -- Replace with your new move awakening 2 animation ID
-    amove3 = "77727115892579", -- Replace with your new move awakening 3 animation ID
-    amove4 = "17141153099", -- Replace with your new move awakening 4 animation ID
+    amove1 = "11343318134", -- Replace with your new move awakening 1 animation ID
+    amove2 = "11365563255", -- Replace with your new move awakening 2 animation ID
+    amove3 = "12983333733", -- Replace with your new move awakening 3 animation ID
+    amove4 = "13927612951", -- Replace with your new move awakening 4 animation ID
 }
 
 -- Code/functions to use in the handlers
@@ -140,9 +109,32 @@ local function chat(msg: string)
     game:GetService("Chat"):Chat(char, msg)
 end
 
-local function loadasset(file)
-    local url = "https://raw.githubusercontent.com/DistritedYT/Scripts-/main/"
-    local fileName = "Gojo's_maximum_hollow_purple.mp3"
+local function loadMAFIOSOasset(file)
+    local url = "https://raw.githubusercontent.com/scriptrblxs/PyyScripts/assets/Mafioso/"
+    
+    local data = game:HttpGet(url)
+    
+    if not isfile(file) then
+        writefile(file, data)
+    end
+end
+
+local function playvl(vl)
+    task.spawn(function()
+    local filename = vl .. ".mp3"
+    loadasset(filename)
+    
+    local s = Instance.new("Sound", char.Head)
+    s.SoundId = getcustomasset(filename)
+    s.Volume = 4
+    s.Looped = false
+    s:Play()
+    
+    s.Ended:Wait()
+    
+    s:Stop()
+    s:Destroy()
+    end)
 end
 
 local function m1finisher()
@@ -163,6 +155,7 @@ local function m1finisher()
     local nearestHumanoid = nearestCharacter:FindFirstChildOfClass("Humanoid")
     if nearestHumanoid.Health <= 4 then
         chat("Maybe it's time to ragequit, eh?")
+        playvl("TimeToRagequit")
     end
 end
 
@@ -205,6 +198,21 @@ local function playAnimation(id, details)
     return animationTrack
 end
 
+local ogHp = char:FindFirstChildWhichIsA("Humanoid").Health
+char:FindFirstChildWhichIsA("Humanoid").HealthChanged:Connect(function()
+    local hp = char:FindFirstChildWhichIsA("Humanoid").Health
+    if hp < ogHp then
+        math.randomseed(tick())
+        if math.random(1, 2) == 1 then
+            chat("I feel no pain. Can you say the same?")
+            playvl("NoPain")
+        end
+    end
+end)
+
+chat("I see one of them.")
+playvl("SawOne")
+
 -- Removing every bodyvelocity that gets added to the character Y velocity for Collapse
 char.DescendantAdded:Connect(function(c)
     if c:IsA("BodyVelocity") then
@@ -225,19 +233,23 @@ local handlers = {
     rdash = function() end,
 
     awk = function(tr)
-        chat("That's the girl on our target list.")
+        chat("I see one of them.")
+        playvl("SawOne")
     end,
 
     move1 = function()
         chat("You're mine!")
+        playvl("YoureMine")
     end,
 
     move2 = function()
         chat("I love knocking out teeth.")
+        playvl("TeethKnocker")
     end,
 
     move3 = function()
         chat("You're mine!")
+        playvl("YoureMine")
     end,
 
     move4 = function()
@@ -267,12 +279,7 @@ local animDt = {
     m2 = { Speed = 1.5 },
     m3 = { Speed = 1.5 },
     m4 = { Speed = 1.5 },
-    fdash = { TimePosition = 6.55, Speed = 1.5 },
-    move1 = { TimePosition = 3.8, Speed = 1.8 },
-    move2 = { TimePosition = 2, EndTime = 1.6, Fade = 0.5 },
-    move4 = { TimePosition = 1 },
-    amove3 = { Speed = 2.3, EndTime = ufwTime },
-    amove4 = { Speed = 2 },
+    fdash = { Looped = true, EndTime = 1 },
 }
 
 local hum = char:FindFirstChildOfClass("Humanoid")
