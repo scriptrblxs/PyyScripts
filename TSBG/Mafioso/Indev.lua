@@ -12,10 +12,6 @@ if katana1 then char:FindFirstChild("Sheathe"):Destroy() char:FindFirstChild("#K
 if katana2 then char:FindFirstChild("Sheathed"):Destroy() char:FindFirstChild("#NinjaKATANA"):Destroy() end
 if bat then char:FindFirstChild("#BATWEAPON"):Destroy() end
 
--- Modules
-local cutmod = loadstring(game:HttpGet("https://raw.githubusercontent.com/scriptrblxs/PyyScripts/refs/heads/main/TSBG/CutsceneModule.lua"))()
-local cfseq = cutmod.CFrameSequence
-
 -- Editing names
 local plrgui:PlayerGui = lplr:FindFirstChild("PlayerGui")
 local gui:ScreenGui = plrgui:FindFirstChild("ScreenGui")
