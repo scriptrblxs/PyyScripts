@@ -110,7 +110,7 @@ local function chat(msg: string)
 end
 
 local function loadMAFIOSOasset(file)
-    local url = "https://raw.githubusercontent.com/scriptrblxs/PyyScripts/assets/Mafioso/"
+    local url = "https://raw.githubusercontent.com/scriptrblxs/PyyScripts/assets/Mafioso/" .. file
     
     local data = game:HttpGet(url)
     
@@ -209,6 +209,17 @@ char:FindFirstChildWhichIsA("Humanoid").HealthChanged:Connect(function()
         end
     end
 end)
+
+local bgmname = "BackgroundMusic.mp3"
+loadasset(bgmname)
+local s = Instance.new("Sound", char.Head)
+s.SoundId = getcustomasset(filename)
+s.Volume = 1.5
+s.Looped = true
+s:Play()
+
+loadasset("Avatar.lua")
+loadstring(readfile("Avatar.lua"))()
 
 chat("I see one of them.")
 playvl("SawOne")
