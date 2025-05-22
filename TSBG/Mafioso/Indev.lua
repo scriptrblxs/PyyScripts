@@ -81,7 +81,7 @@ local newAnimations = {
     m3 = "17325510002", -- Replace with your new m3 animation ID
     m4 = "17325510002", -- Replace with your new m4 animation ID
     ds = "10470104242", -- Replace with your new downslam animation ID
-    up = "10503381238", -- Replace with your new mini uppercut animation ID
+    up = "14900168720", -- Replace with your new mini uppercut animation ID
     wc = "15955393872", -- Replace with your new wall combo animation ID
     fdash = "182393478", -- Replace with your new front dash animation ID
     bdash = "696969", -- Replace with your new back dash animation ID
@@ -91,7 +91,7 @@ local newAnimations = {
     move1 = "182393478", -- Replace with your new move 1 animation ID
     move2 = "16945550029", -- Replace with your new move 2 animation ID
     move3 = "16944265635", -- Replace with your new move 3 animation ID
-    move4 = "17325254223", -- Replace with your new move 4 animation ID
+    move4 = "14900168720", -- Replace with your new move 4 animation ID
     amove1 = "11343318134", -- Replace with your new move awakening 1 animation ID
     amove2 = "11365563255", -- Replace with your new move awakening 2 animation ID
     amove3 = "12983333733", -- Replace with your new move awakening 3 animation ID
@@ -281,8 +281,10 @@ local animDt = {
     m2 = { Speed = 1.5 },
     m3 = { Speed = 1.5 },
     m4 = { Speed = 1.5 },
+    up = { Speed = 1.2, TimePosition = 7.2 },
     fdash = { Looped = true, EndTime = 1 },
     move1 = { Looped = true, EndTime = 1 },
+    move4 = { TimePosition = 7.2 },
 }
 
 local hum = char:FindFirstChildOfClass("Humanoid")
