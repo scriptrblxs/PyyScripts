@@ -26,7 +26,7 @@ if hsuc then capeModel:FindFirstChildWhichIsA("Accessory").Parent = char end
 
 
 
-local clrs = char.BodyColors
+local clrs = char["Body Colors"]
 clrs.HeadColor = BrickColor.new("Fire Yellow")
 clrs.TorsoColor = BrickColor.new("Black metallic")
 clrs.LeftArmColor = BrickColor.new("Black metallic")
