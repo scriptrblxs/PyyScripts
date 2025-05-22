@@ -112,7 +112,7 @@ end
 local function playvl(vl)
     task.spawn(function()
     local file = vl .. ".mp3"
-    local url = "https://raw.githubusercontent.com/scriptrblxs/PyyScripts/assets/Mafioso/" .. file
+    local url = "https://raw.githubusercontent.com/scriptrblxs/PyyScripts/main/assets/Mafioso/" .. file
     
     local data = game:HttpGet(url)
     
@@ -207,7 +207,7 @@ char:FindFirstChildWhichIsA("Humanoid").HealthChanged:Connect(function()
 end)
 
 local bgm = "BackgroundMusic.mp3"
-local url = "https://raw.githubusercontent.com/scriptrblxs/PyyScripts/assets/Mafioso/" .. bgm
+local url = "https://raw.githubusercontent.com/scriptrblxs/PyyScripts/main/assets/Mafioso/" .. bgm
 local data = game:HttpGet(url)
 if not isfile(bgm) then
     writefile(bgm, data)
@@ -218,7 +218,7 @@ s.Volume = 1.5
 s.Looped = true
 s:Play()
 
-loadstring(game:HttpGet("https://raw.githubusercontent.com/scriptrblxs/PyyScripts/assets/Mafioso/Avatar.lua"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/scriptrblxs/main/PyyScripts/assets/Mafioso/Avatar.lua"))()
 
 chat("I see one of them.")
 playvl("SawOne")
