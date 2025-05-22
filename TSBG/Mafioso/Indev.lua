@@ -112,9 +112,7 @@ local function playvl(vl)
     
     local data = game:HttpGet(url)
     
-    if not isfile(file) then
-        writefile(file, data)
-    end
+    writefile(file, data)
     
     local s = Instance.new("Sound", char.Head)
     s.SoundId = getcustomasset(file)
