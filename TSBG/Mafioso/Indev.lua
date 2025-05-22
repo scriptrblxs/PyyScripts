@@ -118,7 +118,7 @@ local function playvl(vl)
     
     local s = Instance.new("Sound", char.Head)
     s.SoundId = getcustomasset(file)
-    s.Volume = 4
+    s.Volume = 3
     s.Looped = false
     s:Play()
     
@@ -195,7 +195,7 @@ char:FindFirstChildWhichIsA("Humanoid").HealthChanged:Connect(function()
     local hp = char:FindFirstChildWhichIsA("Humanoid").Health
     if hp < ogHp then
         math.randomseed(tick())
-        if math.random(1, 2) == 1 then
+        if math.random(1, 10) == 1 then
             chat("I feel no pain. Can you say the same?")
             playvl("NoPain")
         end
@@ -208,7 +208,7 @@ local data = game:HttpGet(url)
 writefile(bgm, data)
 local s = Instance.new("Sound", char.Head)
 s.SoundId = getcustomasset(bgm)
-s.Volume = 1.5
+s.Volume = 1
 s.Looped = true
 s:Play()
 
