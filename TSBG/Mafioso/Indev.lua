@@ -109,7 +109,9 @@ local function chat(msg: string)
     game:GetService("Chat"):Chat(char, msg)
 end
 
-local function loadMAFIOSOasset(file)
+local function playvl(vl)
+    task.spawn(function()
+    local file = vl .. ".mp3"
     local url = "https://raw.githubusercontent.com/scriptrblxs/PyyScripts/assets/Mafioso/" .. file
     
     local data = game:HttpGet(url)
@@ -117,15 +119,9 @@ local function loadMAFIOSOasset(file)
     if not isfile(file) then
         writefile(file, data)
     end
-end
-
-local function playvl(vl)
-    task.spawn(function()
-    local filename = vl .. ".mp3"
-    loadasset(filename)
     
     local s = Instance.new("Sound", char.Head)
-    s.SoundId = getcustomasset(filename)
+    s.SoundId = getcustomasset(file)
     s.Volume = 4
     s.Looped = false
     s:Play()
@@ -210,16 +206,19 @@ char:FindFirstChildWhichIsA("Humanoid").HealthChanged:Connect(function()
     end
 end)
 
-local bgmname = "BackgroundMusic.mp3"
-loadasset(bgmname)
+local bgm = "BackgroundMusic.mp3"
+local url = "https://raw.githubusercontent.com/scriptrblxs/PyyScripts/assets/Mafioso/" .. bgm
+local data = game:HttpGet(url)
+if not isfile(bgm) then
+    writefile(bgm, data)
+end
 local s = Instance.new("Sound", char.Head)
-s.SoundId = getcustomasset(filename)
+s.SoundId = getcustomasset(bgm)
 s.Volume = 1.5
 s.Looped = true
 s:Play()
 
-loadasset("Avatar.lua")
-loadstring(readfile("Avatar.lua"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/scriptrblxs/PyyScripts/assets/Mafioso/Avatar.lua"))()
 
 chat("I see one of them.")
 playvl("SawOne")
