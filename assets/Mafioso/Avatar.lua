@@ -15,14 +15,15 @@ shirt.ShirtTemplate = "https://www.roblox.com/asset/?id=943292579"
 local pants = Instance.new("Pants", char)
 pants.PantsTemplate = "https://www.roblox.com/asset/?id=943292013"
 
+local is = game:GetService("InsertService")
 local hsuc, hatModel = pcall(function()
-    return game:GetObjects("rbxassetid://86325274703687")[1]
+    return is:LoadAsset(86325274703687)
 end)
-if hsuc then hatModel.Parent = char end
+if hsuc then hatModel:FindFirstChildWhichIsA("Accessory").Parent = char end
 local csuc, capeModel = pcall(function()
-    return game:GetObjects("rbxassetid://14021461958")[1]
+    return is:LoadAsset(14021461958)[1]
 end)
-if hsuc then capeModel.Parent = char end
+if hsuc then capeModel:FindFirstChildWhichIsA("Accessory").Parent = char end
 
 
 

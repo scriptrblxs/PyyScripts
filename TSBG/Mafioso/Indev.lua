@@ -189,17 +189,12 @@ local function playAnimation(id, details)
     return animationTrack
 end
 
-local ogHp = humanoid.Health
-humanoid.HealthChanged:Connect(function()
-    local hp = humanoid.Health
-    if hp < ogHp then
-        math.randomseed(tick())
-        if math.random(1, 10) == 1 then
-            chat("I feel no pain. Can you say the same?")
-            playvl("NoPain")
-        end
+while task.wait(25) do
+    if math.random(1, 10) == 1 then
+        chat("I feel no pain, can you say the same?")
+        playvl("NoPain")
     end
-end)
+end
 
 local bgm = "BackgroundMusic.mp3"
 local url = "https://raw.githubusercontent.com/scriptrblxs/PyyScripts/main/assets/Mafioso/BackgroundMusic.mp3"
@@ -207,7 +202,7 @@ local data = game:HttpGet(url)
 writefile(bgm, data)
 local s = Instance.new("Sound", char.Head)
 s.SoundId = getcustomasset(bgm)
-s.Volume = 1
+s.Volume = 1.5
 s.Looped = true
 s:Play()
 
