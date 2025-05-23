@@ -1,5 +1,6 @@
 -- LICENSE.md
-print(game:HttpGet("https://raw.githubusercontent.com/scriptrblxs/PyyScripts/refs/heads/main/LICENSE.md"))
+local isTesting = false
+print(not isTesting and game:HttpGet("https://raw.githubusercontent.com/scriptrblxs/PyyScripts/refs/heads/main/LICENSE.md"))
 
 local lplr = game.Players.LocalPlayer
 local char = lplr.Character or lplr.CharacterAdded:Wait()
@@ -149,8 +150,8 @@ local function m1finisher()
     end
 end
 
+local humanoid = char:FindFirstChildOfClass("Humanoid")
 local function playAnimation(id, details)
-    local humanoid = char:FindFirstChildOfClass("Humanoid")
     if not humanoid or not humanoid:FindFirstChild("Animator") then
         warn("Invalid humanoid or humanoid has no Animator.")
         return
@@ -188,9 +189,9 @@ local function playAnimation(id, details)
     return animationTrack
 end
 
-local ogHp = char:FindFirstChildWhichIsA("Humanoid").Health
-char:FindFirstChildWhichIsA("Humanoid").HealthChanged:Connect(function()
-    local hp = char:FindFirstChildWhichIsA("Humanoid").Health
+local ogHp = humanoid.Health
+humanoid.HealthChanged:Connect(function()
+    local hp = humanoid.Health
     if hp < ogHp then
         math.randomseed(tick())
         if math.random(1, 10) == 1 then
@@ -284,6 +285,7 @@ local animDt = {
     up = { Speed = 1.2, TimePosition = 7.2 },
     fdash = { Looped = true, EndTime = 1 },
     move1 = { Looped = true, EndTime = 1 },
+    move2 = { TimePosition = 2, EndTime = 1.6, Fade = 0.5 },
     move4 = { TimePosition = 7.2 },
 }
 
