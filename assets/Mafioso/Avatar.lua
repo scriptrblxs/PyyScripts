@@ -15,18 +15,6 @@ shirt.ShirtTemplate = "https://www.roblox.com/asset/?id=943292579"
 local pants = Instance.new("Pants", char)
 pants.PantsTemplate = "https://www.roblox.com/asset/?id=943292013"
 
-local is = game:GetService("InsertService")
-local hsuc, hatModel = pcall(function()
-    return is:LoadAsset(86325274703687)
-end)
-if hsuc then hatModel:FindFirstChildWhichIsA("Accessory").Parent = char end
-local csuc, capeModel = pcall(function()
-    return is:LoadAsset(14021461958)[1]
-end)
-if hsuc then capeModel:FindFirstChildWhichIsA("Accessory").Parent = char end
-
-
-
 local clrs = char["Body Colors"]
 clrs.HeadColor = BrickColor.new("Fire Yellow")
 clrs.TorsoColor = BrickColor.new("Black metallic")
@@ -34,3 +22,17 @@ clrs.LeftArmColor = BrickColor.new("Black metallic")
 clrs.RightArmColor = BrickColor.new("Black metallic")
 clrs.LeftLegColor = BrickColor.new("Black metallic")
 clrs.RightLegColor = BrickColor.new("Black metallic")
+
+
+
+local hat = game:GetObjects("rbxassetid://86325274703687")[1]
+local cape = game:GetObjects("rbxassetid://14021461958")[1]
+
+if hat then
+    hat:FindFirstChild("Handle").CanCollide = false
+    char.Humanoid:AddAccessory(hat)
+end
+if cape then
+    cape:FindFirstChild("Handle").CanCollide = false
+    char.Humanoid:AddAccessory(cape)
+end
