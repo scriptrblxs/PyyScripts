@@ -49,7 +49,7 @@ local cfseq = cutmod.CFrameSequence
 
 -- Editing names
 local plrgui:PlayerGui = lplr:FindFirstChild("PlayerGui")
-local gui:ScreenGui = plrgui:FindFirstChild("ScreenGui")
+local gui:ScreenGui = plrgui:FindFirstChild("Bar")
 local ultbar:Frame = gui:FindFirstChild("MagicHealth")
 local ultbarclr:Frame = ultbar:FindFirstChild("Health").Bar.Bar
 local ulttext:TextButton = ultbar:FindFirstChild("TextLabel")
