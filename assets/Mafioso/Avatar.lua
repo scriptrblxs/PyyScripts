@@ -10,10 +10,8 @@ for _, v in pairs(char:GetDescendants()) do
     end
 end
 
-local shirt = Instance.new("Shirt", char)
-shirt.ShirtTemplate = "https://www.roblox.com/asset/?id=943292579"
-local pants = Instance.new("Pants", char)
-pants.PantsTemplate = "https://www.roblox.com/asset/?id=943292013"
+game:GetObjects("rbxassetid://943292579")[1].Parent = char
+game:GetObjects("rbassetid://943292013")[1].Parent = char
 
 local clrs = char["Body Colors"]
 clrs.HeadColor = BrickColor.new("Fire Yellow")
@@ -25,18 +23,32 @@ clrs.RightLegColor = BrickColor.new("Black metallic")
 
 
 
-local hat = game:GetObjects("rbxassetid://86325274703687")[1]
-local cape = game:GetObjects("rbxassetid://14021461958")[1]
+task.spawn(function()
+local char = game.Players.LocalPlayer.Character
+local acc = Instance.new("Part", workspace)
+local msh = Instance.new("SpecialMesh", acc)
 
-if hat then
-    local handle = hat:FindFirstChild("Handle")
-    handle.CFrame = char.Head.CFrame
-    handle.CanCollide = false
-    char.Humanoid:AddAccessory(hat)
+acc.Size = Vector3.one
+acc.CanCollide = false
+msh.MeshId = "rbxassetid://14017298270"
+msh.TextureId = "rbxassetid://12785483723"
+
+while task.wait() do
+acc.CFrame = char.Torso.CFrame * CFrame.new(0, -1, 1.45) * CFrame.Angles(0, math.rad(180), 0)
 end
-if cape then
-    local handle = cape:FindFirstChild("Handle")
-    handle.CFrame = char.Torso.CFrame
-    handle.CanCollide = false
-    char.Humanoid:AddAccessory(cape)
+end)
+
+task.spawn(function()
+local char = game.Players.LocalPlayer.Character
+local acc = Instance.new("Part", workspace)
+local msh = Instance.new("SpecialMesh", acc)
+
+acc.Size = Vector3.one
+acc.CanCollide = false
+msh.MeshId = "rbxassetid://100820733582046"
+msh.TextureId = "rbxassetid://117078964932861"
+
+while task.wait() do
+acc.CFrame = char.Head.CFrame * CFrame.new(0, 0.75, 0)
 end
+end)
