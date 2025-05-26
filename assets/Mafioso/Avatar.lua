@@ -1,7 +1,7 @@
 local lplr = game.Players.LocalPlayer
 local char = lplr.Character or lplr.CharacterAdded:Wait()
 
-for _, v in pairs(char:GetChildren()) do
+for _, v in pairs(char:GetDescendants()) do
     if v:IsA("Clothing") or v:IsA("Accessory") then
         v:Destroy()
     end
@@ -29,10 +29,14 @@ local hat = game:GetObjects("rbxassetid://86325274703687")[1]
 local cape = game:GetObjects("rbxassetid://14021461958")[1]
 
 if hat then
-    hat:FindFirstChild("Handle").CanCollide = false
+    local handle = hat:FindFirstChild("Handle")
+    handle.CFrame = char.Head.CFrame
+    handle.CanCollide = false
     char.Humanoid:AddAccessory(hat)
 end
 if cape then
-    cape:FindFirstChild("Handle").CanCollide = false
+    local handle = cape:FindFirstChild("Handle")
+    handle.CFrame = char.Torso.CFrame
+    handle.CanCollide = false
     char.Humanoid:AddAccessory(cape)
 end

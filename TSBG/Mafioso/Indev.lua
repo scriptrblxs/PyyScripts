@@ -213,6 +213,8 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/scriptrblxs/PyyScript
 game:GetService("Chat"):Chat(char, "I see one of them.")
 playvl("SawOne")
 
+-- slow thing
+
 -- Removing every bodyvelocity that gets added to the character Y velocity for Collapse
 char.DescendantAdded:Connect(function(c)
     if c:IsA("BodyVelocity") then
