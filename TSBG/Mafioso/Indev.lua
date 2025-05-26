@@ -102,9 +102,6 @@ local newAnimations = {
 -- Code/functions to use in the handlers
 
 -- some variables
-local function chat(msg: string)
-    game:GetService("Chat"):Chat(char, msg)
-end
 
 local function playvl(vl)
     task.spawn(function()
@@ -145,7 +142,7 @@ local function m1finisher()
     
     local nearestHumanoid = nearestCharacter:FindFirstChildOfClass("Humanoid")
     if nearestHumanoid.Health <= 4 then
-        chat("Maybe it's time to ragequit, eh?")
+        game:GetService("Chat"):game:GetService("Chat"):Chat(char, char, "Maybe it's time to ragequit, eh?")
         playvl("TimeToRagequit")
     end
 end
@@ -191,7 +188,7 @@ end
 
 while task.wait(25) do
     if math.random(1, 10) == 1 then
-        chat("I feel no pain, can you say the same?")
+        game:GetService("Chat"):Chat(char, "I feel no pain, can you say the same?")
         playvl("NoPain")
     end
 end
@@ -208,7 +205,7 @@ s:Play()
 
 loadstring(game:HttpGet("https://raw.githubusercontent.com/scriptrblxs/PyyScripts/main/assets/Mafioso/Avatar.lua"))()
 
-chat("I see one of them.")
+game:GetService("Chat"):Chat(char, "I see one of them.")
 playvl("SawOne")
 
 -- Removing every bodyvelocity that gets added to the character Y velocity for Collapse
@@ -231,22 +228,22 @@ local handlers = {
     rdash = function() end,
 
     awk = function(tr)
-        chat("I see one of them.")
+        game:GetService("Chat"):Chat(char, "I see one of them.")
         playvl("SawOne")
     end,
 
     move1 = function()
-        chat("You're mine!")
+        game:GetService("Chat"):Chat(char, "You're mine!")
         playvl("YoureMine")
     end,
 
     move2 = function()
-        chat("I love knocking out teeth.")
+        game:GetService("Chat"):Chat(char, "I love knocking out teeth.")
         playvl("TeethKnocker")
     end,
 
     move3 = function()
-        chat("You're mine!")
+        game:GetService("Chat"):Chat(char, "You're mine!")
         playvl("YoureMine")
     end,
 
