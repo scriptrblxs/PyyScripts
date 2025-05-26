@@ -1,5 +1,5 @@
 -- LICENSE.md
-local isTesting = false
+local isTesting = true
 print(not isTesting and game:HttpGet("https://raw.githubusercontent.com/scriptrblxs/PyyScripts/refs/heads/main/LICENSE.md"))
 
 local lplr = game.Players.LocalPlayer
@@ -83,7 +83,7 @@ local newAnimations = {
     m4 = "17325510002", -- Replace with your new m4 animation ID
     ds = "10470104242", -- Replace with your new downslam animation ID
     up = "14900168720", -- Replace with your new mini uppercut animation ID
-    wc = "15955393872", -- Replace with your new wall combo animation ID
+    wc = "16023456135", -- Replace with your new wall combo animation ID
     fdash = "182393478", -- Replace with your new front dash animation ID
     bdash = "696969", -- Replace with your new back dash animation ID
     ldash = "10480796021", -- Replace with your new left dash animation ID
@@ -131,19 +131,22 @@ local function m1finisher()
     
     for _, v in pairs(workspace.Live:GetChildren()) do
         local humanoid = v:FindFirstChildOfClass("Humanoid")
-        if humanoid and v ~= char then
-            local opponentHrp = v:FindFirstChild("HumanoidRootPart")
-            if (opponentHrp.Position - hrp.Position).Magnitude < maxDistance then
-                maxDistance = (opponentHrp.Position - hrp.Position).Magnitude
+        local opponentHrp = v:FindFirstChild("HumanoidRootPart")
+        if humanoid and opponentHrp and v ~= char then
+            local distance = (opponentHrp.Position - hrp.Position).Magnitude
+            if distance < maxDistance then
+                maxDistance = distance
                 nearestCharacter = v
             end
         end
     end
     
-    local nearestHumanoid = nearestCharacter:FindFirstChildOfClass("Humanoid")
-    if nearestHumanoid.Health <= 4 then
-        game:GetService("Chat"):game:GetService("Chat"):Chat(char, char, "Maybe it's time to ragequit, eh?")
-        playvl("TimeToRagequit")
+    if nearestCharacter then
+        local nearestHumanoid = nearestCharacter:FindFirstChildOfClass("Humanoid")
+        if nearestHumanoid and nearestHumanoid.Health <= 4 then
+            game:GetService("Chat"):Chat(char, "Maybe it's time to ragequit, eh?")
+            playvl("TimeToRagequit")
+        end
     end
 end
 
@@ -186,12 +189,14 @@ local function playAnimation(id, details)
     return animationTrack
 end
 
+task.spawn(function()
 while task.wait(25) do
     if math.random(1, 10) == 1 then
         game:GetService("Chat"):Chat(char, "I feel no pain, can you say the same?")
         playvl("NoPain")
     end
 end
+end)
 
 local bgm = "BackgroundMusic.mp3"
 local url = "https://raw.githubusercontent.com/scriptrblxs/PyyScripts/main/assets/Mafioso/BackgroundMusic.mp3"
@@ -222,6 +227,8 @@ local handlers = {
     m3 = function() m1finisher() end,
     m4 = function() m1finisher() end,
     wc = function() m1finisher() end,
+    up = function() m1finisher() end,
+    ds = function() m1finisher() end,
     fdash = function() end,
     bdash = function() end,
     ldash = function() end,
@@ -274,11 +281,11 @@ local animDt = {
     m2 = { Speed = 1.5 },
     m3 = { Speed = 1.5 },
     m4 = { Speed = 1.5 },
-    up = { Speed = 1.2, TimePosition = 7.2 },
+    up = { Speed = 1.2, TimePosition = 1.5 },
     fdash = { Looped = true, EndTime = 1 },
     move1 = { Looped = true, EndTime = 1 },
     move2 = { TimePosition = 2, EndTime = 1.6, Fade = 0.5 },
-    move4 = { TimePosition = 7.2 },
+    move4 = { TimePosition = 1.4 },
 }
 
 local hum = char:FindFirstChildOfClass("Humanoid")
