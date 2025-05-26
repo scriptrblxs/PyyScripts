@@ -11,7 +11,7 @@ for _, v in pairs(char:GetDescendants()) do
 end
 
 game:GetObjects("rbxassetid://943292579")[1].Parent = char
-game:GetObjects("rbassetid://943292013")[1].Parent = char
+game:GetObjects("rbxassetid://943292013")[1].Parent = char
 
 local clrs = char["Body Colors"]
 clrs.HeadColor = BrickColor.new("Fire Yellow")
@@ -29,6 +29,7 @@ local acc = Instance.new("Part", workspace)
 local msh = Instance.new("SpecialMesh", acc)
 
 acc.Size = Vector3.one
+acc.Name = "MafiosoCape"
 acc.CanCollide = false
 msh.MeshId = "rbxassetid://14017298270"
 msh.TextureId = "rbxassetid://12785483723"
@@ -44,6 +45,7 @@ local acc = Instance.new("Part", workspace)
 local msh = Instance.new("SpecialMesh", acc)
 
 acc.Size = Vector3.one
+acc.Name = "MafiosoFedora"
 acc.CanCollide = false
 msh.MeshId = "rbxassetid://100820733582046"
 msh.TextureId = "rbxassetid://117078964932861"
