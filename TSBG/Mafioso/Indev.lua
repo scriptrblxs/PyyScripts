@@ -22,7 +22,7 @@ local ulttext:TextButton = ultbar:FindFirstChild("TextLabel")
 
 -- Awakening text & color
 ulttext.Text = "?"
-ultbarclr.BackgroundColor3 = Color3.fromRGB(100, 100, 100) -- In RGB values (red, green, blue)
+ultbarclr.BackgroundColor3 = Color3.fromRGB(31, 31, 31) -- In RGB values (red, green, blue)
 
 local hotbar:ScreenGui = plrgui:FindFirstChild("Hotbar")
 local backpack = hotbar:FindFirstChild("Backpack")
@@ -214,6 +214,31 @@ game:GetService("Chat"):Chat(char, "I see one of them.")
 playvl("SawOne")
 
 -- slow thing
+local slowgui = Instance.new("ScreenGui", plrgui)
+slowgui.ScreenInsets = Enum.ScreenInsets.None
+local slowf = Instance.new("ViewportFrame", slowgui)
+slowf.BackgroundTransparency = 1
+slowf.AnchorPoint = Vector2.new(0.5, 0.5)
+slowf.Position = UDim2.fromScale(0.5, 0.5)
+slowf.Size = UDim2.fromScale(1, 1)
+task.spawn(function()
+    while true do
+        slowf:ClearAllChildren()
+        local camm = Instance.new("Camera", slowf)
+        camm.CFrame = workspace.CurrentCamera
+        slowf.CurrentCamera = camm
+
+        local charac = char:Clone()
+        charac.Parent = slowf
+
+        local cape = workspace:FindFirstChild("MafiosoCape")
+        local hat = workspace:FindFirstChild("MafiosoFedora")
+        if cape then cape:Clone().Parent = slowf end
+        if hat then hat:Clone().Parent = slowf end
+
+        task.wait(1 / 15)
+    end
+end)
 
 -- Removing every bodyvelocity that gets added to the character Y velocity for Collapse
 char.DescendantAdded:Connect(function(c)

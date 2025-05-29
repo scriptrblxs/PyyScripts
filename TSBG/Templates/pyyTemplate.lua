@@ -290,7 +290,7 @@ for k, v in pairs(extraMoves) do
     tool.Name = v.Name or k
     tool.RequiresHandle = false
     tool.Parent = lplr.Backpack
-    tool:SetAttribute("OnCooldown", falsse)
+    tool:SetAttribute("OnCooldown", false)
     
     tool.Equipped:Connect(function(mouse)
         local hum = char.Humanoid
