@@ -108,15 +108,33 @@ newmove("Walkspeed Override", 20, function()
     
     local hit = hitbox(Vector3.new(7, 5, 7), Vector3.new(0, 0, -(7/2)), 1.3)
     if hit then
+        local hhrp = hit.HumanoidRootPart
         local anm = Instance.new("Animation")
         anm.AnimationId = "rbxassetid://12983333733"
         local h = hum:LoadAnimation(anm)
         h:Play()
         h:AdjustWeight(10)
-        h.TimePosition = d.Length
+        h.TimePosition = 101010102992 -- placeholder
         
-        print("hit placeholder")
+        activateMove("Shove")
+        local SSSS = tick()
+        while tick() - SSSS < 1 do
+            local dir = CFrame.Angles(hrp.CFrame:ToEulerAnglesXYZ())
+            hrp.CFrame = CFrame.new(hhrp.CFrame.Position) * dir * CFrame.new(0, 0, 1)
+        end
     else
-        print("fail placeholder")
+        local anm = Instance.new("Animation")
+        anm.AnimationId = "rbxassetid://12983333733"
+        local h = hum:LoadAnimation(anm)
+        h:Play()
+        h:AdjustWeight(10)
+        h.TimePosition = 1919198292 -- placeholder
+        
+        hrp.Anchored = true
+        task.delay(1, function()
+            hrp.Anchored = false
+        end)
     end
 end)
+
+newmove()
