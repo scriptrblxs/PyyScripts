@@ -4,6 +4,13 @@ local hrp = char.HumanoidRootPart
 local hum = char.Humanoid
 local bp = lplr.Backpack
 
+local bar = lplr.PlayerGui.Bar
+for _, v in pairs(bar:GetChildren()) do
+    if v:IsA("GuiObject") then
+        v:Destroy()
+    end
+end
+
 local com = char.Communicate
 
 for _, v in pairs(bp:GetChildren()) do
@@ -136,5 +143,3 @@ newmove("Walkspeed Override", 20, function()
         end)
     end
 end)
-
-newmove()
