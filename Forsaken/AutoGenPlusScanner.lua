@@ -34,6 +34,7 @@ task.spawn(function()
                     if gen.Progress.Value >= 100 then
                         h.OutlineColor = Color3.new(0, 1, 0)
                     end
+                    h.Name = "GeneratorHighlight"
                     h.Parent = gen
                 end
             end
