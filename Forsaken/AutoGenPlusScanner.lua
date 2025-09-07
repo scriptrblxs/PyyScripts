@@ -30,10 +30,7 @@ task.spawn(function()
                     local h = gen:FindFirstChild("GeneratorHighlight") or Instance.new("Highlight")
                     h.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
                     h.FillTransparency = 1
-                    h.OutlineColor = Color3.new(1, 0, 0)
-                    if gen.Progress.Value >= 100 then
-                        h.OutlineColor = Color3.new(0, 1, 0)
-                    end
+                    h.OutlineColor = Color3.new(1, 0, 0):Lerp(Color3.new(0, 1, 0), gen.Progress.Value / 100)
                     h.Name = "GeneratorHighlight"
                     h.Parent = gen
                 end
