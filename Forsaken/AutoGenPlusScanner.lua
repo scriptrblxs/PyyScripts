@@ -34,5 +34,6 @@ task.spawn(function()
                 h.Parent = gen
             end
         end
+        task.wait()
     end
 end)
