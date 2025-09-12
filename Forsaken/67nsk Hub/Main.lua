@@ -37,4 +37,11 @@ local Window = Rayfield:CreateWindow({
    }
 })
 
-local Animations = Window:CreateTab({)
+local Animations = Window:CreateTab("Animations", "a-large-small")
+
+local testbtn = Animations:CreateButton({
+    Name = "SIGMA BUTTON PLS CLICK",
+    Callback = function()
+        print("thanks")
+    end
+})
