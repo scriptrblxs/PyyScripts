@@ -1,4 +1,5 @@
--- HumanoidAnimator v2 - Ragdoll-style with offsets
+-- test library i guess
+
 local HumanoidAnimator = {}
 HumanoidAnimator.__index = HumanoidAnimator
 
@@ -41,7 +42,7 @@ function HumanoidAnimator.new(character)
     -- Store and destroy all Motor6Ds
     for _, motor in pairs(character:GetDescendants()) do
         if motor:IsA("Motor6D") then
-            self.OriginalMotors[motor.Name] = {Parent = motor.Parent, Part0 = motor.Part0, Part1 = motor.Part1, C0 = motor.C0, C1 = motor.C1}
+            self.OriginalMotors[motor.Name] = {Part0 = motor.Part0, Part1 = motor.Part1, C0 = motor.C0, C1 = motor.C1}
             motor:Destroy()
         end
     end
@@ -55,12 +56,15 @@ function HumanoidAnimator:Play(sequence, duration)
     self.Sequence = sequence
     self.Playing = true
     self.StartTime = tick()
-    self.Duration = duration or (sequence.Keypoints[#sequence.Keypoints].Time)
+    self.Duration = duration or sequence.Keypoints[#sequence.Keypoints].Time
+    local loop = self.Duration == 0
 
     task.spawn(function()
         while self.Playing do
             local elapsed = tick() - self.StartTime
-            if elapsed >= self.Duration then
+            if loop then
+                elapsed = elapsed % sequence.Keypoints[#sequence.Keypoints].Time
+            elseif elapsed >= self.Duration then
                 self:ApplyKeypoint(sequence.Keypoints[#sequence.Keypoints])
                 self.Playing = false
                 break
@@ -83,7 +87,6 @@ function HumanoidAnimator:Interpolate(time)
                 local offset1 = k1.Offsets[partName] or CFrame.new()
                 local offset2 = k2.Offsets[partName] or offset1
 
-                -- Use stored Motor6D data if it exists
                 for motorName, motorData in pairs(self.OriginalMotors) do
                     if motorData.Part1 == part then
                         local baseCFrame = motorData.Part0.CFrame * motorData.C0
@@ -127,7 +130,7 @@ function HumanoidAnimator:RestoreMotors()
         motor.Part1 = data.Part1
         motor.C0 = data.C0
         motor.C1 = data.C1
-        motor.Parent = data.Parent
+        motor.Parent = data.Part0
     end
 end
 
