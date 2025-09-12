@@ -1,5 +1,9 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
+local SelectedRunAnimation = "Survivor"
+local SelectedWalkAnimation = "Survivor"
+local SelectedIdleAnimation = "Survivor"
+
 local Window = Rayfield:CreateWindow({
    Name = "67nsk",
    Icon = 0, -- Icon in Topbar. Can use Lucide Icons (string) or Roblox Image (number). 0 to use no icon (default).
@@ -8,7 +12,7 @@ local Window = Rayfield:CreateWindow({
    ShowText = "67", -- for mobile users to unhide rayfield, change if you'd like
    Theme = "Amethyst", -- Check https://docs.sirius.menu/rayfield/configuration/themes
 
-   ToggleUIKeybind = "F5", -- The keybind to toggle the UI visibility (string like "K" or Enum.KeyCode)
+   ToggleUIKeybind = Enum.KeyCode.F5, -- The keybind to toggle the UI visibility (string like "K" or Enum.KeyCode)
 
    DisableRayfieldPrompts = false,
    DisableBuildWarnings = false, -- Prevents Rayfield from warning when the script has a version mismatch with the interface
@@ -27,7 +31,7 @@ local Window = Rayfield:CreateWindow({
 
    KeySystem = true, -- Set this to true to use our key system
    KeySettings = {
-      Title = "Hey you yes you",
+      Title = "Hey you yes you i dont trust you",
       Subtitle = "ligma key",
       Note = "i dont fuckign know maybe join the discord server", -- Use this to tell the user how to get a key
       FileName = "SIGMASIGMASakenkeyLIGMALIGMAohmy67", -- It is recommended to use something unique as other scripts using Rayfield may overwrite your key file
@@ -45,3 +49,70 @@ local testbtn = Animations:CreateButton({
         print("thanks")
     end
 })
+
+local RunDropdown = Animations:CreateDropdown({
+   Name = "Target Run Animation",
+   Options = {
+       "Survivor",
+       "This",
+       "Dropdown",
+       "Does",
+       "Nothing",
+       "Yet",
+   },
+   CurrentOption = {"Survivor"},
+   MultipleOptions = false,
+   Flag = "SurvivorRunAnimationId", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+   Callback = function(Options)
+       local optn = Options[1]
+       SelectedRunAnimation = optn
+   end,
+})
+
+local WalkDropdown = Animations:CreateDropdown({
+   Name = "Target Walk Animation",
+   Options = {
+       "Survivor",
+       "This",
+       "Dropdown",
+       "Does",
+       "Nothing",
+       "Yet",
+   },
+   CurrentOption = {"Survivor"},
+   MultipleOptions = false,
+   Flag = "SurvivorWalkAnimationId", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+   Callback = function(Options)
+       local optn = Options[1]
+       SelectedWalkAnimation = optn
+   end,
+})
+
+local IdleDropdown = Animations:CreateDropdown({
+   Name = "Target Idle Animation",
+   Options = {
+       "Survivor",
+       "This",
+       "Dropdown",
+       "Does",
+       "Nothing",
+       "Yet",
+   },
+   CurrentOption = {"Survivor"},
+   MultipleOptions = false,
+   Flag = "SurvivorIdleAnimationId", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+   Callback = function(Options)
+       local optn = Options[1]
+       SelectedIdleAnimation = optn
+   end,
+})
+
+local i = 0
+while true do
+    i += 1
+    print(tick .. " " .. i)
+    print(SelectedRunAnimation)
+    print(SelectedWalkAnimation)
+    print(SelectedIdleAnimation)
+    task.wait(1)
+end
