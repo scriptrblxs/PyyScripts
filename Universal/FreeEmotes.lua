@@ -1,6 +1,6 @@
 local Raypeeled = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
 
-local Window = Raypeeled:CreateWindow({
+local Window = Raypeeled({
    Name = "idk why did i make this",
    Icon = 0, -- Icon in Topbar. Can use Lucide Icons (string) or Roblox Image (number). 0 to use no icon (default).
    LoadingTitle = "pls use 67nsk hub forsaken",
