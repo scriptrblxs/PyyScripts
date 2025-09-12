@@ -110,7 +110,7 @@ local IdleDropdown = Animations:CreateDropdown({
 local i = 0
 while true do
     i += 1
-    print(tick .. " " .. i)
+    print(tick() .. " " .. i)
     print(SelectedRunAnimation)
     print(SelectedWalkAnimation)
     print(SelectedIdleAnimation)
