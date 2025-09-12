@@ -3,7 +3,7 @@ local CFrameSequence = loadstring(game:HttpGet("https://raw.githubusercontent.co
 local function RigShiftToCFrameSequence(codeString)
     local seq = CFrameSequence.new()
     
-    local Compressor = require(path_to_compressor).new()
+    local Compressor = loadstring(game:HttpGet("https://raw.githubusercontent.com/scriptrblxs/PyyScripts/refs/heads/main/Universal/HumanoidAnimator/RigShiftImporter/Compressor.lua"))().new()
     local decompressed = Compressor:decompress(codeString)
     local HttpService = game:GetService("HttpService")
     local data = HttpService:JSONDecode(decompressed)
