@@ -1,35 +1,21 @@
--- LICENSE.md
-v1=function() print("-- HumanoidAnimationModule.lua --\n" .. game:HttpGet("https://raw.githubusercontent.com/scriptrblxs/PyyScripts/refs/heads/main/LICENSE.md"))end
-if v1 then v1() end
+local HumanoidAnimator = {}
+HumanoidAnimator.__index = HumanoidAnimator
 
 -- CFrameSequenceKeypoint
 local CFrameSequenceKeypoint = {}
 CFrameSequenceKeypoint.__index = CFrameSequenceKeypoint
-
 function CFrameSequenceKeypoint.new(time, offsets)
-    return setmetatable({ Time = time, Offsets = offsets }, CFrameSequenceKeypoint)
+    return setmetatable({Time = time, Offsets = offsets}, CFrameSequenceKeypoint)
 end
 
 -- CFrameSequence
 local CFrameSequence = {}
 CFrameSequence.__index = CFrameSequence
-
-function CFrameSequence.new()
-    return setmetatable({ Keypoints = {} }, CFrameSequence)
-end
-
+function CFrameSequence.new() return setmetatable({Keypoints = {}}, CFrameSequence) end
 function CFrameSequence:AddKeypoint(time, offsets)
     table.insert(self.Keypoints, CFrameSequenceKeypoint.new(time, offsets))
-    table.sort(self.Keypoints, function(a, b) return a.Time < b.Time end)
+    table.sort(self.Keypoints, function(a,b) return a.Time < b.Time end)
 end
-
-function CFrameSequence:GetKeypoints()
-    return self.Keypoints
-end
-
--- HumanoidAnimator
-local HumanoidAnimator = {}
-HumanoidAnimator.__index = HumanoidAnimator
 
 HumanoidAnimator.CFrameSequence = CFrameSequence
 
@@ -40,72 +26,81 @@ function HumanoidAnimator.new(character)
         Playing = false,
         StartTime = 0,
         Duration = 0,
-        Motors = {},
-        Looped = false,
+        Parts = {}
     }, HumanoidAnimator)
 
-    -- Store all Motor6Ds
-    for _, motor in pairs(character:GetDescendants()) do
-        if motor:IsA("Motor6D") then
-            self.Motors[motor.Name] = motor
+    -- Store all BaseParts
+    for _, part in pairs(character:GetDescendants()) do
+        if part:IsA("BasePart") then
+            self.Parts[part.Name] = part
         end
     end
 
     return self
 end
 
--- Find surrounding keyframes for a part
-local function findPartKeyframes(keypoints, partName, time)
-    local last, next = nil, nil
-    for i, kp in ipairs(keypoints) do
-        if kp.Offsets[partName] then
-            if kp.Time <= time then
-                last = kp
-            elseif kp.Time > time and not next then
-                next = kp
-            end
-        end
-    end
-    return last, next
-end
-
-function HumanoidAnimator:Play(sequence, duration, looped)
-    if not sequence or #sequence.Keypoints < 1 then return end
+-- Play a sequence
+function HumanoidAnimator:Play(sequence, duration)
+    if not sequence or #sequence.Keypoints < 2 then return end
     self.Sequence = sequence
-    self.Duration = duration or 1
-    self.Looped = looped or false
     self.Playing = true
     self.StartTime = tick()
+    self.Duration = duration or 1
 
     task.spawn(function()
         while self.Playing do
             local elapsed = tick() - self.StartTime
-
             if elapsed >= self.Duration then
-                if self.Looped then
-                    self.StartTime = tick()
-                    elapsed = 0
-                else
-                    elapsed = self.Duration
-                    self.Playing = false
-                end
+                self:ApplyKeypoint(sequence.Keypoints[#sequence.Keypoints])
+                self.Playing = false
+                break
             end
-
-            for name, motor in pairs(self.Motors) do
-                local last, next = findPartKeyframes(sequence.Keypoints, name, elapsed)
-                if last and next then
-                    local t = (elapsed - last.Time) / (next.Time - last.Time)
-                    local c1 = last.Offsets[name]
-                    local c2 = next.Offsets[name]
-                    motor.Transform = c1:Lerp(c2, t)
-                elseif last then
-                    motor.Transform = last.Offsets[name]
-                end
-            end
-
+            self:Interpolate(elapsed)
             task.wait()
         end
     end)
+end
+
+-- Interpolate parts linearly
+function HumanoidAnimator:Interpolate(time)
+    local keypoints = self.Sequence.Keypoints
+    for _, kp in ipairs(keypoints) do
+        local k1, k2 = kp, keypoints[_+1]
+        if not k2 then break end
+        if time >= k1.Time and time <= k2.Time then
+            local t = (time - k1.Time) / (k2.Time - k1.Time)
+            for partName, part in pairs(self.Parts) do
+                local offset1 = k1.Offsets[partName] or CFrame.new()
+                local offset2 = k2.Offsets[partName] or offset1
+
+                -- Try to find a motor6d connecting to this part
+                local motor = part.Parent:FindFirstChildWhichIsA("Motor6D")
+                local baseCFrame = part.CFrame
+                if motor then
+                    baseCFrame = motor.Part0.CFrame * motor.C0
+                end
+
+                -- Apply linear interpolation of offsets and set CFrame
+                part.CFrame = baseCFrame * offset1:Lerp(offset2, t)
+            end
+            break
+        end
+    end
+end
+
+-- Apply a keyframe instantly
+function HumanoidAnimator:ApplyKeypoint(kp)
+    for partName, part in pairs(self.Parts) do
+        local offset = kp.Offsets[partName]
+        if offset then
+            local motor = part.Parent:FindFirstChildWhichIsA("Motor6D")
+            local baseCFrame = part.CFrame
+            if motor then
+                baseCFrame = motor.Part0.CFrame * motor.C0
+            end
+            part.CFrame = baseCFrame * offset
+        end
+    end
 end
 
 function HumanoidAnimator:Stop()
