@@ -174,27 +174,39 @@ end
 if lplr.Character then setupCharacter(lplr.Character) end
 lplr.CharacterAdded:Connect(setupCharacter)
 
-local Camera = workspace.CurrentCamera
-local espLines = {}
-local espHighlights = {}
+-- esp
+local esp = false
+local espKillerClr = Color3.new(1, 0, 0) -- red
+local espSurvivorClr = Color3.new(0, 1, 0) -- green
+local espItemClr = Color3.new(1, 0.4, 0.6) -- pink-orange i think
+local highlightTransparency = 0.5
 
+local Camera = workspace.CurrentCamera
 local PlayersFolder = workspace:FindFirstChild("Players")
 local KillersFolder = PlayersFolder and PlayersFolder:FindFirstChild("Killers")
 local SurvivorsFolder = PlayersFolder and PlayersFolder:FindFirstChild("Survivors")
+local ItemsFolder = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("Ingame")
 
-local function makeLineForPlayer(player)
-    local line = Drawing.new("Line")
-    line.Visible = false
-    line.Thickness = 1.5
-    line.Transparency = 1 -- always visible
-    espLines[player] = line
+local objectLines = {}
+local objectHighlights = {}
+
+local function getLine(obj, color, zindex)
+    local line = objectLines[obj]
+    if not line then
+        line = Drawing.new("Line")
+        line.Thickness = 1
+        line.Color = color
+        line.ZIndex = zindex
+        line.Visible = false
+        objectLines[obj] = line
+    end
     return line
 end
 
-local function makeHighlightForChar(char, player)
+local function getHighlight(char)
     local existing = char:FindFirstChild("67nskESP")
     if existing and existing:IsA("Highlight") then
-        espHighlights[player] = existing
+        objectHighlights[char] = existing
         existing.FillTransparency = 1
         existing.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
         return existing
@@ -204,68 +216,103 @@ local function makeHighlightForChar(char, player)
     hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
     hl.FillTransparency = 1
     hl.Parent = char
-    espHighlights[player] = hl
+    objectHighlights[char] = hl
     return hl
 end
 
-local function removeEspForPlayer(player)
-    if espLines[player] then
-        pcall(function() espLines[player]:Remove() end)
-        espLines[player] = nil
+local function cleanup()
+    for obj, line in pairs(objectLines) do
+        if not obj.Parent then
+            pcall(function()
+                line.Visible = false
+                line:Remove()
+            end)
+            objectLines[obj] = nil
+        end
     end
-    if espHighlights[player] then
-        pcall(function() espHighlights[player]:Destroy() end)
-        espHighlights[player] = nil
+    for char, hl in pairs(objectHighlights) do
+        if not char.Parent then
+            pcall(function() hl:Destroy() end)
+            objectHighlights[char] = nil
+        end
     end
 end
 
-game.Players.PlayerRemoving:Connect(removeEspForPlayer)
+game.Players.PlayerRemoving:Connect(function(player)
+    if objectLines[player] then
+        pcall(function() objectLines[player]:Remove() end)
+        objectLines[player] = nil
+    end
+    if objectHighlights[player] then
+        pcall(function() objectHighlights[player]:Destroy() end)
+        objectHighlights[player] = nil
+    end
+end)
 
 RunService.RenderStepped:Connect(function()
-    PlayersFolder = workspace:FindFirstChild("Players")
-    KillersFolder = PlayersFolder and PlayersFolder:FindFirstChild("Killers")
-    SurvivorsFolder = PlayersFolder and PlayersFolder:FindFirstChild("Survivors")
-    for _, player in ipairs(game.Players:GetPlayers()) do
-        if player == lplr then
-            if espLines[player] then espLines[player].Visible = false end
-            if espHighlights[player] and espHighlights[player].Parent then espHighlights[player].Enabled = false end
-            continue
+    if not esp then
+        for _, line in pairs(objectLines) do line.Visible = false end
+        for _, hl in pairs(objectHighlights) do
+            if hl.Parent then hl.Enabled = false end
         end
-        local char = player.Character
-        if esp and char and char:FindFirstChild("HumanoidRootPart") then
-            local hrp = char.HumanoidRootPart
-            local pos, onScreen = Camera:WorldToViewportPoint(hrp.Position)
-            if not espLines[player] then makeLineForPlayer(player) end
-            if not espHighlights[player] then makeHighlightForChar(char, player) end
-            local line = espLines[player]
-            local hl = espHighlights[player]
-            local isKiller = false
-            if KillersFolder and KillersFolder:FindFirstChild(char.Name) then
-                isKiller = true
-            elseif SurvivorsFolder and SurvivorsFolder:FindFirstChild(char.Name) then
-                isKiller = false
-            elseif player.Team then
-                isKiller = (player.Team.Name == "Killers")
-            end
-            local color = isKiller and espKillerClr or espSurvivorClr
-            if onScreen then
-                line.From = Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y)
+        return
+    end
+
+    local origin = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y
+    if SurvivorsFolder then
+        for _, char in pairs(SurvivorsFolder:GetChildren()) do
+            if char:FindFirstChild("HumanoidRootPart") then
+                local hrp = char.HumanoidRootPart
+                local pos, onScreen = Camera:WorldToViewportPoint(hrp.Position)
+                local line = getLine(char, espSurvivorClr, 1)
+                line.From = origin
                 line.To = Vector2.new(pos.X, pos.Y)
-                line.Color = color
-                line.Transparency = 1
-                line.Visible = true
-                if hl and hl.Parent then
-                    hl.OutlineColor = color
-                    hl.OutlineTransparency = highlightTransparency
-                    hl.Enabled = true
-                end
-            else
-                if line then line.Visible = false end
-                if hl and hl.Parent then hl.Enabled = false end
+                line.Color = espSurvivorClr
+                line.ZIndex = 1
+                line.Visible = onScreen and pos.Z > 0
+
+                local hl = getHighlight(char)
+                hl.OutlineColor = espSurvivorClr
+                hl.OutlineTransparency = highlightTransparency
+                hl.Enabled = onScreen and pos.Z > 0
             end
-        else
-            if espLines[player] then espLines[player].Visible = false end
-            if espHighlights[player] and espHighlights[player].Parent then espHighlights[player].Enabled = false end
         end
     end
+    
+    if KillersFolder then
+        for _, char in pairs(KillersFolder:GetChildren()) do
+            if char:FindFirstChild("HumanoidRootPart") then
+                local hrp = char.HumanoidRootPart
+                local pos, onScreen = Camera:WorldToViewportPoint(hrp.Position)
+                local line = getLine(char, espKillerClr, 2)
+                line.From = origin
+                line.To = Vector2.new(pos.X, pos.Y)
+                line.Color = espKillerClr
+                line.ZIndex = 2
+                line.Visible = onScreen and pos.Z > 0
+
+                local hl = getHighlight(char)
+                hl.OutlineColor = espKillerClr
+                hl.OutlineTransparency = highlightTransparency
+                hl.Enabled = onScreen and pos.Z > 0
+            end
+        end
+    end
+
+    if ItemsFolder then
+        for _, item in pairs(ItemsFolder:GetChildren()) do
+            if item:IsA("Tool") and item:FindFirstChild("Handle") then
+                local handle = item.Handle
+                local pos, onScreen = Camera:WorldToViewportPoint(handle.Position)
+                local line = getLine(item, espItemClr, 0)
+                line.From = origin
+                line.To = Vector2.new(pos.X, pos.Y)
+                line.Color = espItemClr
+                line.ZIndex = 0
+                line.Visible = onScreen and pos.Z > 0
+            end
+        end
+    end
+
+    cleanup()
 end)
