@@ -100,6 +100,7 @@ end
 local esp = false
 local espKillerClr = Color3.new(1, 0, 0)
 local espSurvivorClr = Color3.new(0, 1, 0)
+local espItemClr = Color3.new(1, 0.4, 0.6)
 local highlightTransparency = 0.5
 
 AdvantagesTab:CreateSection("ESP")
@@ -120,6 +121,12 @@ AdvantagesTab:CreateColorPicker({
     Color = Color3.new(0, 1, 0),
     Flag = "SurvivorColor",
     Callback = function(clr) espSurvivorClr = clr end
+})
+AdvantagesTab:CreateColorPicker({
+    Name = "Item ESP Color",
+    Color = Color3.new(1, 0.4, 0.6),
+    Flag = "ItemColor",
+    Callback = function(clr) espItemClr = clr end
 })
 AdvantagesTab:CreateSlider({
     Name = "Highlight Transparency",
@@ -175,12 +182,6 @@ if lplr.Character then setupCharacter(lplr.Character) end
 lplr.CharacterAdded:Connect(setupCharacter)
 
 -- esp
-local esp = false
-local espKillerClr = Color3.new(1, 0, 0) -- red
-local espSurvivorClr = Color3.new(0, 1, 0) -- green
-local espItemClr = Color3.new(1, 0.4, 0.6) -- pink-orange i think
-local highlightTransparency = 0.5
-
 local Camera = workspace.CurrentCamera
 local PlayersFolder = workspace:FindFirstChild("Players")
 local KillersFolder = PlayersFolder and PlayersFolder:FindFirstChild("Killers")
@@ -191,6 +192,7 @@ local objectLines = {}
 local objectHighlights = {}
 
 local function getLine(obj, color, zindex)
+    if obj == lplr.Character then return end
     local line = objectLines[obj]
     if not line then
         line = Drawing.new("Line")
@@ -204,6 +206,7 @@ local function getLine(obj, color, zindex)
 end
 
 local function getHighlight(char)
+    if char == lplr.Character then return end
     local existing = char:FindFirstChild("67nskESP")
     if existing and existing:IsA("Highlight") then
         objectHighlights[char] = existing
@@ -258,18 +261,19 @@ RunService.RenderStepped:Connect(function()
         return
     end
 
-    local origin = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y
+    local origin = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y)
     if SurvivorsFolder then
         for _, char in pairs(SurvivorsFolder:GetChildren()) do
             if char:FindFirstChild("HumanoidRootPart") then
                 local hrp = char.HumanoidRootPart
                 local pos, onScreen = Camera:WorldToViewportPoint(hrp.Position)
                 local line = getLine(char, espSurvivorClr, 1)
+                if not line then continue end
                 line.From = origin
                 line.To = Vector2.new(pos.X, pos.Y)
                 line.Color = espSurvivorClr
                 line.ZIndex = 1
-                line.Visible = onScreen and pos.Z > 0
+                line.Visible = pos.Z > 0
 
                 local hl = getHighlight(char)
                 hl.OutlineColor = espSurvivorClr
@@ -285,11 +289,12 @@ RunService.RenderStepped:Connect(function()
                 local hrp = char.HumanoidRootPart
                 local pos, onScreen = Camera:WorldToViewportPoint(hrp.Position)
                 local line = getLine(char, espKillerClr, 2)
+                if not line then continue end
                 line.From = origin
                 line.To = Vector2.new(pos.X, pos.Y)
                 line.Color = espKillerClr
                 line.ZIndex = 2
-                line.Visible = onScreen and pos.Z > 0
+                line.Visible = pos.Z > 0
 
                 local hl = getHighlight(char)
                 hl.OutlineColor = espKillerClr
@@ -301,15 +306,16 @@ RunService.RenderStepped:Connect(function()
 
     if ItemsFolder then
         for _, item in pairs(ItemsFolder:GetChildren()) do
-            if item:IsA("Tool") and item:FindFirstChild("Handle") then
-                local handle = item.Handle
+            if item:IsA("Tool") and item:FindFirstChild("ItemRoot") then
+                local handle = item.ItemRoot
                 local pos, onScreen = Camera:WorldToViewportPoint(handle.Position)
                 local line = getLine(item, espItemClr, 0)
+                if not line then continue end
                 line.From = origin
                 line.To = Vector2.new(pos.X, pos.Y)
                 line.Color = espItemClr
                 line.ZIndex = 0
-                line.Visible = onScreen and pos.Z > 0
+                line.Visible = pos.Z > 0
             end
         end
     end
