@@ -97,11 +97,31 @@ for _, animType in ipairs({ "Run", "Walk", "Idle" }) do
     CreateAnimationDropdown(animType)
 end
 
+local speedhx = false
+local speedamnt = 1
+
 local esp = false
 local espKillerClr = Color3.new(1, 0, 0)
 local espSurvivorClr = Color3.new(0, 1, 0)
 local espItemClr = Color3.new(1, 0.4, 0.6)
 local highlightTransparency = 0.5
+
+AdvantagesTab:CreateSection("General")
+AdvantagesTab:CreateToggle({
+    Name = "Speed",
+    CurrentValue = false,
+    Flag = "SpeedToggle",
+    Callback = function(v) speedhx = v end
+})
+AdvantagesTab:CreateSlider({
+    Name = "Speed Amount",
+    Range = {0, 5},
+    Increment = 0.5,
+    Suffix = "studs per frame",
+    CurrentValue = 0.5,
+    Flag = "SpeedHaxAmount",
+    Callback = function(num) speedamnt = num end
+})
 
 AdvantagesTab:CreateSection("ESP")
 AdvantagesTab:CreateToggle({
@@ -181,12 +201,23 @@ end
 if lplr.Character then setupCharacter(lplr.Character) end
 lplr.CharacterAdded:Connect(setupCharacter)
 
+-- speed hx
+game:GetService("RunService").PreSimulation:Connect(function()
+    if not speedhx then return end
+    local chr = lplr.Character
+    if chr then
+        local hum = chr.Humanoid
+        local hrp = chr.HumanoidRootPart
+        
+        hrp.CFrame = CFrame.new(hrp.Position + hum.MoveDirection * speedamnt) * hrp.CFrame.Rotation
+    end
+end)
+
 -- esp
 local Camera = workspace.CurrentCamera
 local PlayersFolder = workspace:FindFirstChild("Players")
 local KillersFolder = PlayersFolder and PlayersFolder:FindFirstChild("Killers")
 local SurvivorsFolder = PlayersFolder and PlayersFolder:FindFirstChild("Survivors")
-local ItemsFolder = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("Ingame")
 
 local objectLines = {}
 local objectHighlights = {}
@@ -253,6 +284,7 @@ game.Players.PlayerRemoving:Connect(function(player)
 end)
 
 RunService.RenderStepped:Connect(function()
+    local ItemsFolder = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("Ingame") and workspace.Map.Ingame:FindFirstChild("Map")
     if not esp then
         for _, line in pairs(objectLines) do line.Visible = false end
         for _, hl in pairs(objectHighlights) do
