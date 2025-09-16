@@ -98,7 +98,8 @@ for _, animType in ipairs({ "Run", "Walk", "Idle" }) do
 end
 
 local speedhx = false
-local speedamnt = 1
+local speedamnt = 0.5
+local speedanimmatch = true
 
 local esp = false
 local espKillerClr = Color3.new(1, 0, 0)
@@ -121,6 +122,12 @@ AdvantagesTab:CreateSlider({
     CurrentValue = 0.5,
     Flag = "SpeedHaxAmount",
     Callback = function(num) speedamnt = num end
+})
+AdvantagesTab:CreateToggle({
+    Name = "Match Speed with Animation",
+    CurrentValue = true,
+    Flag = "MatchAnimationToggle",
+    Callback = function(v) speedanimmatch = v end
 })
 
 AdvantagesTab:CreateSection("ESP")
@@ -183,14 +190,15 @@ end
 local function setupCharacter(chr)
     local hum = chr:WaitForChild("Humanoid")
     hum.Running:Connect(function(spd)
+        local additiveSpd = speedhx and 0 or (speedamnt / 10) / workspace:GetRealPhysicsFPS()
         local sprinting = chr:FindFirstChild("SpeedMultipliers")
             and chr.SpeedMultipliers:FindFirstChild("Sprinting")
             and chr.SpeedMultipliers.Sprinting.Value >= 1.3125
         if spd > 0.01 then
             if sprinting then
-                playAnimation(hum, AnimationIds.Run[SelectedAnimations.Run] or AnimationIds.Run.Survivor, 10, spd / 26)
+                playAnimation(hum, AnimationIds.Run[SelectedAnimations.Run] or AnimationIds.Run.Survivor, 10, (spd + additiveSpd) / 26)
             else
-                playAnimation(hum, AnimationIds.Walk[SelectedAnimations.Walk] or AnimationIds.Walk.Survivor, 10, spd / 12)
+                playAnimation(hum, AnimationIds.Walk[SelectedAnimations.Walk] or AnimationIds.Walk.Survivor, 10, (spd + additiveSpd) / 12)
             end
         else
             playAnimation(hum, AnimationIds.Idle[SelectedAnimations.Idle] or AnimationIds.Idle.Survivor, 9, 1)
@@ -209,7 +217,7 @@ game:GetService("RunService").PreSimulation:Connect(function()
         local hum = chr.Humanoid
         local hrp = chr.HumanoidRootPart
         
-        hrp.CFrame = CFrame.new(hrp.Position + hum.MoveDirection * speedamnt) * hrp.CFrame.Rotation
+        hrp.CFrame = CFrame.new(hrp.Position + hum.MoveDirection * ((speedamnt / 10) / workspace:GetRealPhysicsFPS())) * hrp.CFrame.Rotation
     end
 end)
 
