@@ -101,6 +101,9 @@ local speedhx = false
 local speedamnt = 0.5
 local speedanimmatch = true
 
+local autogen = false
+local autogendelay = false
+
 local esp = false
 local espKillerClr = Color3.new(1, 0, 0)
 local espSurvivorClr = Color3.new(0, 1, 0)
@@ -118,7 +121,7 @@ AdvantagesTab:CreateSlider({
     Name = "Speed Amount",
     Range = {0, 5},
     Increment = 0.5,
-    Suffix = "studs per frame",
+    Suffix = "times 10 studs per second",
     CurrentValue = 0.5,
     Flag = "SpeedHaxAmount",
     Callback = function(num) speedamnt = num end
@@ -128,6 +131,29 @@ AdvantagesTab:CreateToggle({
     CurrentValue = true,
     Flag = "MatchAnimationToggle",
     Callback = function(v) speedanimmatch = v end
+})
+
+AdvantagesTab:CreateDivider()
+AdvantagesTab:CreateToggle({
+    Name = "Auto Generator",
+    CurrentValue = false,
+    Flag = "AutomaticGeneratorFix",
+    Callback = function(v) autogen = v end
+})
+AdvantagesTab:CreateToggle({
+    Name = "Generators ESP",
+    CurrentValue = false,
+    Flag = "GeneratorESP",
+    Callback = function(v) autogenEsp = v end
+})
+AdvantagesTab:CreateSlider({
+    Name = "Auto Generator Interval",
+    Range = {1.75, 60},
+    Increment = 0.05,
+    Suffix = "fix per second",
+    CurrentValue = 2.5,
+    Flag = "AutomaticGeneratorInterval",
+    Callback = function(v) autogendelay = v end
 })
 
 AdvantagesTab:CreateSection("ESP")
@@ -219,6 +245,46 @@ game:GetService("RunService").PreSimulation:Connect(function(dt)
         local add = hum.MoveDirection * (speedamnt * dt * 10)
         
         chr:TranslateBy(add)
+    end
+end)
+
+-- autogen + esp
+task.spawn(function()
+    while true do
+        if not autogen then continue end
+        local map = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("Ingame") and workspace.Map.Ingame:FindFirstChild("Map")
+        if map then
+            for _, gen in pairs(map:GetChildren()) do
+                if gen:IsA("Model") and gen.Name == "Generator" then
+                    local re = gen:FindFirstChild("Remotes") and gen.Remotes:FindFirstChild("RE")
+                    if re then
+                        re:FireServer()
+                    end
+                end
+            end
+        end
+        task.wait(autogendelay)
+    end
+end)
+task.spawn(function()
+    while true do
+        local map = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("Ingame") and workspace.Map.Ingame:FindFirstChild("Map")
+        if map then
+            for _, gen in pairs(map:GetChildren()) do
+                if gen:IsA("Model") and gen.Name == "Generator" then
+                    local h = gen:FindFirstChild("GeneratorHighlight") or Instance.new("Highlight")
+                    h.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+                    h.FillTransparency = 1
+                    h.OutlineColor = Color3.new(1, 0, 0):Lerp(Color3.new(0, 1, 0), gen.Progress.Value / 100)
+                    h.Name = "GeneratorHighlight"
+                    h.Parent = gen
+                    if not autogenEsp then
+                        h:Destroy()
+                    end
+                end
+            end
+        end
+        task.wait()
     end
 end)
 
