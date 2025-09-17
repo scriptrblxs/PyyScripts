@@ -190,7 +190,7 @@ end
 local function setupCharacter(chr)
     local hum = chr:WaitForChild("Humanoid")
     hum.Running:Connect(function(spd)
-        local additiveSpd = speedhx and 0 or (speedamnt / 10) / workspace:GetRealPhysicsFPS()
+        local additiveSpd = not speedhx and 0 or speedamnt * 10
         local sprinting = chr:FindFirstChild("SpeedMultipliers")
             and chr.SpeedMultipliers:FindFirstChild("Sprinting")
             and chr.SpeedMultipliers.Sprinting.Value >= 1.3125
@@ -210,14 +210,15 @@ if lplr.Character then setupCharacter(lplr.Character) end
 lplr.CharacterAdded:Connect(setupCharacter)
 
 -- speed hx
-game:GetService("RunService").PreSimulation:Connect(function()
+game:GetService("RunService").PreSimulation:Connect(function(dt)
     if not speedhx then return end
     local chr = lplr.Character
     if chr then
-        local hum = chr.Humanoid
-        local hrp = chr.HumanoidRootPart
+        local hum = chr:FindFirstChildWhichIsA("Humanoid")
+        if not hum or hum.MoveDirection.Magnitude == 0 then return end
+        local add = hum.MoveDirection * (speedamnt * dt * 10)
         
-        hrp.CFrame = CFrame.new(hrp.Position + hum.MoveDirection * ((speedamnt / 10) / workspace:GetRealPhysicsFPS())) * hrp.CFrame.Rotation
+        chr:TranslateBy(add)
     end
 end)
 
