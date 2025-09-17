@@ -102,7 +102,8 @@ local speedamnt = 0.5
 local speedanimmatch = true
 
 local autogen = false
-local autogendelay = false
+local autogenEsp = false
+local autogendelay = 2.5
 
 local esp = false
 local espKillerClr = Color3.new(1, 0, 0)
@@ -150,7 +151,7 @@ AdvantagesTab:CreateSlider({
     Name = "Auto Generator Interval",
     Range = {1.75, 60},
     Increment = 0.05,
-    Suffix = "fix per second",
+    Suffix = "interval",
     CurrentValue = 2.5,
     Flag = "AutomaticGeneratorInterval",
     Callback = function(v) autogendelay = v end
@@ -251,7 +252,7 @@ end)
 -- autogen + esp
 task.spawn(function()
     while true do
-        if not autogen then continue end
+        if not autogen then task.wait() continue end
         local map = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("Ingame") and workspace.Map.Ingame:FindFirstChild("Map")
         if map then
             for _, gen in pairs(map:GetChildren()) do
@@ -263,7 +264,7 @@ task.spawn(function()
                 end
             end
         end
-        task.wait(autogendelay)
+        task.wait(autogendelay or 2.5)
     end
 end)
 task.spawn(function()
