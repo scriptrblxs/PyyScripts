@@ -1,4 +1,7 @@
 local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
+local Sense = loadstring(game:HttpGet("https://sirius.menu/sense"))()
+-- making your own scripts: NOO! UR SUPPOSED TO OBEY ME!!
+-- the two sirius libraries:
 
 local SelectedAnimations = {
     Run = "Survivor",
@@ -384,151 +387,35 @@ task.spawn(function()
 end)
 
 -- esp
-local Camera = workspace.CurrentCamera
-local PlayersFolder = workspace:FindFirstChild("Players")
-local KillersFolder = PlayersFolder and PlayersFolder:FindFirstChild("Killers")
-local SurvivorsFolder = PlayersFolder and PlayersFolder:FindFirstChild("Survivors")
+Sense.teamSettings.enemy.enabled = true
+Sense.teamSettings.enemy.name = true
+Sense.teamSettings.enemy.healthBar = true
+Sense.teamSettings.enemy.healthText = true
+Sense.teamSettings.enemy.box = true
+Sense.teamSettings.enemy.tracer = true
+Sense.teamSettings.friendly.enabled = true
+Sense.teamSettings.friendly.name = true
+Sense.teamSettings.friendly.healthBar = true
+Sense.teamSettings.friendly.healthText = true
+Sense.teamSettings.friendly.box = true
+Sense.teamSettings.friendly.tracer = true
 
-local objectLines = {}
-local objectHighlights = {}
-
-local function getLine(obj, color, zindex)
-    if obj == lplr.Character then return end
-    local line = objectLines[obj]
-    if not line then
-        line = Drawing.new("Line")
-        line.Thickness = 1
-        line.Color = color
-        line.ZIndex = zindex
-        line.Visible = false
-        objectLines[obj] = line
-    end
-    return line
+function Sense.isFriendly(player)
+    return player.Character and player.Character.Parent == workspace.Players.Survivors
 end
 
-local function getHighlight(char)
-    if char == lplr.Character then return end
-    local existing = char:FindFirstChild("67nskESP")
-    if existing and existing:IsA("Highlight") then
-        objectHighlights[char] = existing
-        existing.FillTransparency = 1
-        existing.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-        return existing
-    end
-    local hl = Instance.new("Highlight")
-    hl.Name = "67nskESP"
-    hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-    hl.FillTransparency = 1
-    hl.Parent = char
-    objectHighlights[char] = hl
-    return hl
+function Sense.getCharacter(player)
+    return player.Character or player.CharacterAdded:Wait()
 end
 
-local function isValidObject(obj)
-    if not obj or not obj.Parent then return false end
-    if SurvivorsFolder and obj:IsDescendantOf(SurvivorsFolder) then return true end
-    if KillersFolder and obj:IsDescendantOf(KillersFolder) then return true end
-    if ItemsFolder and obj:IsDescendantOf(ItemsFolder) then return true end
-    return false
-end
-
-local function cleanup()
-    for obj, line in pairs(objectLines) do
-        if not isValidObject(obj) then
-            pcall(function()
-                line.Visible = false
-                line:Remove()
-            end)
-            objectLines[obj] = nil
-        end
-    end
-    for char, hl in pairs(objectHighlights) do
-        if not isValidObject(char) then
-            pcall(function() hl:Destroy() end)
-            objectHighlights[char] = nil
-        end
+function Sense.getHealth(player)
+    local CharActer = player.Character or player.CharacterAdded:Wait()
+    local humanOid = CharActer:FindFirstChildWhichIsA("Humanoid")
+    if humanOid then
+        return humanOid.Health, humanOid.MaxHealth
+    else
+        return 0, 100
     end
 end
 
-game.Players.PlayerRemoving:Connect(function(player)
-    if objectLines[player] then
-        pcall(function() objectLines[player]:Remove() end)
-        objectLines[player] = nil
-    end
-    if objectHighlights[player] then
-        pcall(function() objectHighlights[player]:Destroy() end)
-        objectHighlights[player] = nil
-    end
-end)
-
-RunService.RenderStepped:Connect(function()
-    local ItemsFolder = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("Ingame") and workspace.Map.Ingame:FindFirstChild("Map")
-    if not esp then
-        for _, line in pairs(objectLines) do line.Visible = false end
-        for _, hl in pairs(objectHighlights) do
-            if hl.Parent then hl.Enabled = false end
-        end
-        return
-    end
-
-    local origin = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y)
-    if SurvivorsFolder then
-        for _, char in pairs(SurvivorsFolder:GetChildren()) do
-            if char:FindFirstChild("HumanoidRootPart") then
-                local hrp = char.HumanoidRootPart
-                local pos, onScreen = Camera:WorldToViewportPoint(hrp.Position)
-                local line = getLine(char, espSurvivorClr, 1)
-                if not line then continue end
-                line.From = origin
-                line.To = Vector2.new(pos.X, pos.Y)
-                line.Color = espSurvivorClr
-                line.ZIndex = 1
-                line.Visible = pos.Z > 0
-
-                local hl = getHighlight(char)
-                hl.OutlineColor = espSurvivorClr
-                hl.OutlineTransparency = highlightTransparency
-                hl.Enabled = onScreen and pos.Z > 0
-            end
-        end
-    end
-    
-    if KillersFolder then
-        for _, char in pairs(KillersFolder:GetChildren()) do
-            if char:FindFirstChild("HumanoidRootPart") then
-                local hrp = char.HumanoidRootPart
-                local pos, onScreen = Camera:WorldToViewportPoint(hrp.Position)
-                local line = getLine(char, espKillerClr, 2)
-                if not line then continue end
-                line.From = origin
-                line.To = Vector2.new(pos.X, pos.Y)
-                line.Color = espKillerClr
-                line.ZIndex = 2
-                line.Visible = pos.Z > 0
-
-                local hl = getHighlight(char)
-                hl.OutlineColor = espKillerClr
-                hl.OutlineTransparency = highlightTransparency
-                hl.Enabled = onScreen and pos.Z > 0
-            end
-        end
-    end
-
-    if ItemsFolder then
-        for _, item in pairs(ItemsFolder:GetChildren()) do
-            if item:IsA("Tool") and item:FindFirstChild("ItemRoot") then
-                local handle = item.ItemRoot
-                local pos, onScreen = Camera:WorldToViewportPoint(handle.Position)
-                local line = getLine(item, espItemClr, 0)
-                if not line then continue end
-                line.From = origin
-                line.To = Vector2.new(pos.X, pos.Y)
-                line.Color = espItemClr
-                line.ZIndex = 0
-                line.Visible = pos.Z > 0
-            end
-        end
-    end
-
-    cleanup()
-end)
+Sense.Load()
