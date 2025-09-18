@@ -50,10 +50,6 @@ local AnimationIds = {
     },
 }
 
-local Speeds = {
-    
-}
-
 local Window = Rayfield:CreateWindow({
     Name = "67nsk",
     Icon = 0,
@@ -236,13 +232,14 @@ local function startFunLoop()
         while havingFun and funTrack do
             funTrack:Play()
             funTrack:AdjustSpeed(0.65)
+            funTrack:AdjustWeight(20)
             funTrack.TimePosition = 0.6
             task.wait(0.1)
             while funTrack and funTrack.IsPlaying and funTrack.TimePosition < 0.65 do
                 task.wait(0.1)
             end
             if funTrack and funTrack.IsPlaying then
-                funTrack:Stop()
+                funTrack.TimePosition = 0.6
             end
             task.wait(0.1)
         end
@@ -265,6 +262,7 @@ RunService.PreRender:Connect(function()
         if hum then
             local animator = hum:FindFirstChildOfClass("Animator") or Instance.new("Animator", hum)
             funTrack = animator:LoadAnimation(funAnm)
+            funTrack:AdjustWeight(20)
         end
     end
     
@@ -425,9 +423,17 @@ local function getHighlight(char)
     return hl
 end
 
+local function isValidObject(obj)
+    if not obj or not obj.Parent then return false end
+    if SurvivorsFolder and obj:IsDescendantOf(SurvivorsFolder) then return true end
+    if KillersFolder and obj:IsDescendantOf(KillersFolder) then return true end
+    if ItemsFolder and obj:IsDescendantOf(ItemsFolder) then return true end
+    return false
+end
+
 local function cleanup()
     for obj, line in pairs(objectLines) do
-        if not obj.Parent then
+        if not isValidObject(obj) then
             pcall(function()
                 line.Visible = false
                 line:Remove()
@@ -436,7 +442,7 @@ local function cleanup()
         end
     end
     for char, hl in pairs(objectHighlights) do
-        if not char.Parent then
+        if not isValidObject(char) then
             pcall(function() hl:Destroy() end)
             objectHighlights[char] = nil
         end
