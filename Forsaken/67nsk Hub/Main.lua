@@ -14,6 +14,7 @@ local AnimationOptions = {
     "Slasher",
     "1x1x1x1",
     "c00lkidd",
+    "Stalker/Dog",
 }
 
 local AnimationIds = {
@@ -25,6 +26,7 @@ local AnimationIds = {
         Slasher = "rbxassetid://93054787145505",
         ["1x1x1x1"] = "rbxassetid://106485518413331",
         c00lkidd = "rbxassetid://96571077893813",
+        ["Stalker/Dog"] = "rbxassetid://109671225388655",
     },
     Walk = {
         Survivor = "rbxassetid://108018357044094",
@@ -34,6 +36,7 @@ local AnimationIds = {
         Slasher = "rbxassetid://93622022596108",
         ["1x1x1x1"] = "rbxassetid://109130982296927",
         c00lkidd = "rbxassetid://18885906143",
+        ["Stalker/Dog"] = "rbxassetid://108287960442206",
     },
     Idle = {
         Survivor = "rbxassetid://131082534135875",
@@ -43,6 +46,7 @@ local AnimationIds = {
         Slasher = "rbxassetid://116050994905421",
         ["1x1x1x1"] = "rbxassetid://138754221537146",
         c00lkidd = "rbxassetid://18885903667",
+        ["Stalker/Dog"] = "rbxassetid://135419935358802",
     },
 }
 
@@ -78,8 +82,17 @@ local Window = Rayfield:CreateWindow({
     },
 })
 
+local havingFun = false
+
 local AnimationsTab = Window:CreateTab("Animations", "a-large-small")
 local AdvantagesTab = Window:CreateTab("Advantages", "a-arrow-up")
+
+AnimationsTab:CreateToggle({
+    Name = "Jerking",
+    CurrentValue = false,
+    Flag = "HavingFunAnimationToggle",
+    Callback = function(v) havingFun = v end
+})
 
 local function CreateAnimationDropdown(animType)
     AnimationsTab:CreateDropdown({
@@ -195,6 +208,65 @@ AdvantagesTab:CreateSlider({
 local lplr = game.Players.LocalPlayer
 local RunService = game:GetService("RunService")
 
+-- beating
+local funAnm = Instance.new("Animation")
+funAnm.AnimationId = "rbxassetid://72042024"
+
+local funTrack
+local chrDoingTomfoolery
+local loopCoroutine
+
+local function startFunLoop()
+    if loopCoroutine and coroutine.status(loopCoroutine) ~= "dead" then
+        return
+    end
+
+    loopCoroutine = coroutine.create(function()
+        while havingFun and funTrack do
+            funTrack:Play()
+            funTrack:AdjustSpeed(0.65)
+            funTrack.TimePosition = 0.6
+            task.wait(0.1)
+            while funTrack and funTrack.IsPlaying and funTrack.TimePosition < 0.65 do
+                task.wait(0.1)
+            end
+            if funTrack and funTrack.IsPlaying then
+                funTrack:Stop()
+            end
+            task.wait(0.1)
+        end
+    end)
+    coroutine.resume(loopCoroutine)
+end
+
+local function stopFunLoop()
+    if funTrack and funTrack.IsPlaying then
+        funTrack:Stop()
+    end
+    loopCoroutine = nil
+end
+
+RunService.PreRender:Connect(function()
+    if not chrDoingTomfoolery or not chrDoingTomfoolery.Parent or chrDoingTomfoolery ~= lplr.Character then
+        chrDoingTomfoolery = lplr.Character or lplr.CharacterAdded:Wait()
+        
+        local hum = chrDoingTomfoolery:FindFirstChildWhichIsA("Humanoid")
+        if hum then
+            local animator = hum:FindFirstChildOfClass("Animator") or Instance.new("Animator", hum)
+            funTrack = animator:LoadAnimation(funAnm)
+        end
+    end
+    
+    if not funTrack then return end
+    
+    if havingFun then
+        startFunLoop()
+    else
+        stopFunLoop()
+    end
+end)
+
+-- custom anism
 local function playAnimation(hum, id, weight, speed)
     game:GetService("RunService").PreAnimation:Wait()
     for _, track in pairs(hum:GetPlayingAnimationTracks()) do
