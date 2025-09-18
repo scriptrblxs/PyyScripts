@@ -50,6 +50,10 @@ local AnimationIds = {
     },
 }
 
+local Speeds = {
+    
+}
+
 local Window = Rayfield:CreateWindow({
     Name = "67nsk",
     Icon = 0,
@@ -110,6 +114,7 @@ for _, animType in ipairs({ "Run", "Walk", "Idle" }) do
     CreateAnimationDropdown(animType)
 end
 
+local infstam = false
 local speedhx = false
 local speedamnt = 0.5
 local speedanimmatch = true
@@ -124,9 +129,15 @@ local espSurvivorClr = Color3.new(0, 1, 0)
 local espItemClr = Color3.new(1, 0.4, 0.6)
 local highlightTransparency = 0.5
 
-AdvantagesTab:CreateSection("General")
+AdvantagesTab:CreateSection("Speed")
 AdvantagesTab:CreateToggle({
-    Name = "Speed",
+    Name = "Infinite Stamina",
+    CurrentValue = false,
+    Flag = "InfStamToggle",
+    Callback = function(v) infstam = v end
+})
+AdvantagesTab:CreateToggle({
+    Name = "Speedhack",
     CurrentValue = false,
     Flag = "SpeedToggle",
     Callback = function(v) speedhx = v end
@@ -135,7 +146,7 @@ AdvantagesTab:CreateSlider({
     Name = "Speed Amount",
     Range = {0, 5},
     Increment = 0.5,
-    Suffix = "times 10 studs per second",
+    Suffix = "times 10 studs/second",
     CurrentValue = 0.5,
     Flag = "SpeedHaxAmount",
     Callback = function(num) speedamnt = num end
@@ -147,7 +158,7 @@ AdvantagesTab:CreateToggle({
     Callback = function(v) speedanimmatch = v end
 })
 
-AdvantagesTab:CreateDivider()
+AdvantagesTab:CreateSection("Generators")
 AdvantagesTab:CreateToggle({
     Name = "Auto Generator",
     CurrentValue = false,
@@ -309,6 +320,18 @@ if lplr.Character then setupCharacter(lplr.Character) end
 lplr.CharacterAdded:Connect(setupCharacter)
 
 -- speed hx
+game:GetService("RunService").PreSimulation:Connect(function()
+    local sprint = require(game.ReplicatedStorage.Systems.Character.Game.Sprinting)
+    sprint.SprintSpeed = 28
+    if infstam then
+        sprint.StaminaLoss = 0
+        sprint.StaminaLossDisabled = true
+    else
+        sprint.StaminaLoss = 10
+        sprint.StaminaLossDisabled = false
+    end
+end)
+
 game:GetService("RunService").PreSimulation:Connect(function(dt)
     if not speedhx then return end
     local chr = lplr.Character
