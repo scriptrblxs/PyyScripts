@@ -8,6 +8,7 @@ local boostedAnimations = {
     ["rbxassetid://86545133269813"] = 0.01,
     ["rbxassetid://116618003477002"] = 0.35,
     ["rbxassetid://87259391926321"] = 0.7,
+    ["rbxassetid://106538427162796"] = 0.25,
 }
 
 local boosttime = 0.5
