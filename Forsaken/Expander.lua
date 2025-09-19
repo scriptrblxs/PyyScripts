@@ -5,17 +5,17 @@ local hrp = chr:WaitForChild("HumanoidRootPart")
 local RunService = game:GetService("RunService")
 
 local boostedAnimations = {
-    ["rbxassetid://86545133269813"] = 0.01,
-    ["rbxassetid://116618003477002"] = 0.35,
-    ["rbxassetid://87259391926321"] = 0.7,
-    ["rbxassetid://106538427162796"] = 0.25,
+    ["rbxassetid://86545133269813"] = {waitTime = 0.01, dist = 6.5},
+    ["rbxassetid://116618003477002"] = {waitTime = 0.4, dist = 5},
+    ["rbxassetid://87259391926321"] = {waitTime = 0.7, dist = 8.5},
+    ["rbxassetid://106538427162796"] = {waitTime = 0.25, dist = 10},
+    ["rbxassetid://126830014841198"] = {waitTime = 0.1, dist = 5},
 }
 
 local boosttime = 0.5
-local extenddist = 5
 local expanding = false
 
-local function hitboxexpaend()
+local function hitboxexpaend(extenddist)
     if expanding then return end
     expanding = true
     
@@ -43,18 +43,18 @@ local function hitboxexpaend()
         if vel.Magnitude > 1 then
             local ping = math.max(plr:GetNetworkPing(), 0.01)
             local extraVel = vel.Unit * (extenddist / ping)
-            hrp.AssemblyLinearVelocity = vel + (Vector3.zero + (extraVel - Vector3.zero) * (elapsed * 2))
+            hrp.AssemblyLinearVelocity = vel + (extraVel * (elapsed * 2))
         end
     end)
 end
 
 hum.AnimationPlayed:Connect(function(track)
     local animId = track.Animation.AnimationId
-    local waitTime = boostedAnimations[animId]
-    if waitTime then
-        task.delay(waitTime, function()
+    local animData = boostedAnimations[animId]
+    if animData then
+        task.delay(animData.waitTime, function()
             if track.IsPlaying then
-                hitboxexpaend()
+                hitboxexpaend(animData.dist)
             end
         end)
     end
