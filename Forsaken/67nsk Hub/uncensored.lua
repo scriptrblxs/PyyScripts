@@ -87,13 +87,13 @@ local havingFun = false
 local AnimationsTab = Window:CreateTab("Animations", "a-large-small")
 local AdvantagesTab = Window:CreateTab("Advantages", "a-arrow-up")
 
--- @Origami told me to (he distributes my scripts)
---AnimationsTab:CreateToggle({
---    Name = "Jerking",
---    CurrentValue = false,
---    Flag = "HavingFunAnimationToggle",
---    Callback = function(v) havingFun = v end
---})
+-- @Origami told me to remove this but im not planning to distribute this version SOOO
+AnimationsTab:CreateToggle({
+    Name = "Jerking",
+    CurrentValue = false,
+    Flag = "HavingFunAnimationToggle",
+    Callback = function(v) havingFun = v end
+})
 
 local function CreateAnimationDropdown(animType)
     AnimationsTab:CreateDropdown({
