@@ -7,11 +7,11 @@ local RunService = game:GetService("RunService")
 local boostedAnimations = {
     ["rbxassetid://86545133269813"] = 0.01,
     ["rbxassetid://116618003477002"] = 0.35,
-    ["rbxassetid://87259391926321"] = 0.8,
+    ["rbxassetid://87259391926321"] = 0.7,
 }
 
 local boosttime = 0.5
-local extenddist = 20
+local extenddist = 5
 local expanding = false
 
 local function hitboxexpaend()
@@ -41,7 +41,7 @@ local function hitboxexpaend()
         local vel = hrp.AssemblyLinearVelocity
         if vel.Magnitude > 1 then
             local ping = math.max(plr:GetNetworkPing(), 0.01)
-            local extraVel = vel.Unit * (extenddist / ping())
+            local extraVel = vel.Unit * (extenddist / ping)
             hrp.AssemblyLinearVelocity = vel + (Vector3.zero + (extraVel - Vector3.zero) * (elapsed * 2))
         end
     end)
