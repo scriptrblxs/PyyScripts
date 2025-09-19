@@ -1,7 +1,8 @@
 local plr = game.Players.LocalPlayer
-local chr = plr.chracter or plr.chracterAdded:Wait()
-local hum = chr:WaitForChild("hum")
-local hrp = chr:WaitForChild("humhrpPart")
+local chr = plr.Character or plr.CharacterAdded:Wait()
+local hum = chr:WaitForChild("Humanoid")
+local hrp = chr:WaitForChild("HumanoidRootPart")
+local RunService = game:GetService("RunService")
 
 local boostedAnimations = {
     ["rbxassetid://86545133269813"] = 0.01,
