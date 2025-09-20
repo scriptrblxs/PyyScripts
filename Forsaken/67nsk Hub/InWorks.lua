@@ -402,6 +402,58 @@ end)
 
 
 
+local AccessoryIdToAccessoryType = {
+    [8]  = Enum.AccessoryType.Hat,
+    [41] = Enum.AccessoryType.Hair,
+    [42] = Enum.AccessoryType.Face,
+    [43] = Enum.AccessoryType.Neck,
+    [44] = Enum.AccessoryType.Shoulder,
+    [45] = Enum.AccessoryType.Front,
+    [46] = Enum.AccessoryType.Back,
+    [47] = Enum.AccessoryType.Waist,
+}
+
+local function insertAccessory(assetid, typeid)
+    local chr = lplr.Character
+    if not chr then return end
+    
+    local acc = game:GetObjects(assetid)[1]
+    acc.AccessoryType = AccessoryIdToAccessoryType[typeid]
+    
+    local handle = acc:FindFirstChild("Handle")
+    if not handle then return end
+    
+    local accAtt = handle:FindFirstChildWhichIsA("Attachment", true)
+    local bodyAtt
+    local bodypart
+    
+    if accAtt then
+        for _, part in ipairs(chr:GetDescendants()) do
+            if part:IsA("Attachment") and part.Name == accAtt.Name then
+                bodyAtt = part
+                bodypart = part.Parent
+                break
+            end
+        end
+    end
+    
+    local weld = Instance.new("Weld")
+    weld.Part1 = handle
+    weld.Part0 = bodypart or chr:FindFirstChild("Torso") or chr:FindFirstChild("UpperTorso") or chr:FindFirstChild("Head")
+    
+    if bodyAtt and accAtt then
+        weld.C0 = bodyAtt.CFrame
+        weld.C1 = accAtt.CFrame
+    else
+        weld.C0 = CFrame.new()
+        weld.C1 = CFrame.new()
+    end
+    
+    weld.Parent = handle
+    acc.Parent = chr
+    return acc
+end
+
 FunTab:CreateButton({
 	Name = "Yourself Skin (visual)",
 	Callback = function()
@@ -431,7 +483,7 @@ FunTab:CreateButton({
 		
 		for _, v in pairs(altInfo.assets) do
 			if v.assetType.id == 8 or (v.assetType.id >= 41 and v.assetType.id <= 47) then
-				game:GetObjects("rbxassetid://" .. v.id)[1].Parent = chr
+				insertAccessory("rbxassetid://" .. v.id, v.assetType.id)
 			end
 		end
 		
@@ -442,7 +494,7 @@ FunTab:CreateButton({
 			bc.LeftArmColor3 = avabc.LeftArmColor3
 			bc.RightArmColor3 = avabc.RightArmColor3
 			bc.LeftLegColor3 = avabc.LeftLegColor3
-			bc.RightLegColor3 = avabc.RightLegColor3
+		    bc.RightLegColor3 = avabc.RightLegColor3
 		end
 	end
 })
