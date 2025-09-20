@@ -304,6 +304,7 @@ local function playAnimation(hum, id, weight, speed)
         end
     end
     local anim = Instance.new("Animation")
+    anim.Name = "hub67anm"
     anim.AnimationId = id
     local track = hum:LoadAnimation(anim)
     track:AdjustWeight(weight or 10)
@@ -314,6 +315,17 @@ end
 
 local function setupCharacter(chr)
     local hum = chr:WaitForChild("Humanoid")
+    hum.AnimationPlayed:Connect(function(tr)
+        if tr.Animation.Name ~= "hub67anm" then
+            if tr.Animation.AnimationId == AnimationIds.Walk.Survivor or
+                tr.Animation.AnimationId == AnimationIds.Run.Survivor or
+                tr.Animation.AnimationId == AnimationIds.Idle.Survivor
+                then
+                tr:Stop()
+            end
+        end
+    end)
+    
     hum.Running:Connect(function(spd)
         local additiveSpd = not speedhx and 0 or speedamnt * 10
         local sprinting = chr:FindFirstChild("SpeedMultipliers")
