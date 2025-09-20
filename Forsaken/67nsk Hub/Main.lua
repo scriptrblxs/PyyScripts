@@ -417,6 +417,7 @@ FunTab:CreateButton({
 		end
 		
 		local avatar = game.Players:GetCharacterAppearanceAsync(lplr.UserId)
+		local altInfo = game.Players:GetCharacterAppearanceInfoAsync(lplr.UserId)
 		local face = game.Players:GetHumanoidDescriptionFromUserId(lplr.UserId).Face
 		if face ~= 0 then
 		    local expression = chr:FindFirstChild("ExpressionHolder")
@@ -428,9 +429,9 @@ FunTab:CreateButton({
 		    fdc.Parent = chr.Head
 		end
 		
-		for _, v in pairs(avatar:GetChildren()) do
-			if v:IsA("Accessory") or v:IsA("Hat") or v:IsA("Clothing") then
-				v.Parent = chr
+		for _, v in pairs(altInfo.assets) do
+			if v.assetType.id == 8 or (v.assetType.id >= 41 and v.assetType.id <= 47) then
+				game:GetObjects("rbxassetid://" .. v.id)[1].Parent = chr
 			end
 		end
 		
