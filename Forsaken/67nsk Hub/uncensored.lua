@@ -521,6 +521,7 @@ local function setupESP(teamType, color)
     settings.healthBar = true
     settings.healthText = true
     settings.box = true
+    settings.boxFill = false
     settings.boxColor = {color,1}
     settings.tracer = true
     settings.tracerColor = {color,1}
