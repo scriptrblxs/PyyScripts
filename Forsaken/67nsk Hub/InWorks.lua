@@ -417,9 +417,7 @@ setupESP("enemy", espKillerClr)
 setupESP("friendly", espSurvivorClr)
 
 function Sense.isFriendly(player)
-    return player.Character and player.Character.Parent == workspace:FindFirstChild("Players") 
-        and workspace.Players:FindFirstChild("Survivors")
-        and player.Character.Parent == workspace.Players.Survivors
+    return player.Character and player.Character.Parent == workspace.Players.Survivors
 end
 
 function Sense.getCharacter(player)
