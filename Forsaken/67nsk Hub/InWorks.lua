@@ -1,7 +1,5 @@
 local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
 local Sense = loadstring(game:HttpGet("https://sirius.menu/sense"))()
--- making your own scripts: NOO! UR SUPPOSED TO OBEY ME!!
--- the two sirius libraries:
 local senseCanLoad = false
 
 local SelectedAnimations = {
@@ -63,22 +61,16 @@ local Window = Rayfield:CreateWindow({
     Theme = "Amethyst",
     ToggleUIKeybind = Enum.KeyCode.F5,
     DisableRayfieldPrompts = true,
-    DisableBuildWarnings = false,
     ConfigurationSaving = {
         Enabled = true,
         FolderName = "67nsk Mustard hub",
         FileName = "ch7_0",
     },
-    Discord = {
-        Enabled = false,
-        Invite = "noinvitelink",
-        RememberJoins = true,
-    },
     KeySystem = true,
     KeySettings = {
         Title = "Hey you yes you i dont trust you",
         Subtitle = "ligma key",
-        Note = "i dont fuckign know maybe join the discord server",
+        Note = "join the discord maybe",
         FileName = "SIGMASIGMASakenkeyLIGMALIGMAohmy67",
         SaveKey = true,
         GrabKeyFromSite = false,
@@ -86,10 +78,15 @@ local Window = Rayfield:CreateWindow({
     },
 })
 
-local havingFun = false
-
 local AnimationsTab = Window:CreateTab("Animations", "a-large-small")
 local AdvantagesTab = Window:CreateTab("Advantages", "a-arrow-up")
+local FunTab = Window:CreateTab("Fun", "smile")
+
+local yesCustomAnims = false
+local havingFun = false
+
+local lplr = game.Players.LocalPlayer
+local RunService = game:GetService("RunService")
 
 --@Origami told me to (he distributes my scripts)
 --AnimationsTab:CreateToggle({
@@ -99,6 +96,179 @@ local AdvantagesTab = Window:CreateTab("Advantages", "a-arrow-up")
 --    Callback = function(v) havingFun = v end
 --})
 
+-- beating
+local funAnm = Instance.new("Animation")
+funAnm.AnimationId = "rbxassetid://72042024"
+
+local funTrack
+local chrDoingTomfoolery
+local loopCoroutine
+
+local function startFunLoop()
+    if loopCoroutine and coroutine.status(loopCoroutine) ~= "dead" then
+        return
+    end
+
+    loopCoroutine = coroutine.create(function()
+        while havingFun and funTrack do
+            funTrack:Play()
+            funTrack:AdjustSpeed(0.65)
+            funTrack:AdjustWeight(20)
+            funTrack.TimePosition = 0.6
+            task.wait(0.1)
+            while funTrack and funTrack.IsPlaying and funTrack.TimePosition < 0.65 do
+                task.wait(0.1)
+            end
+            if funTrack and funTrack.IsPlaying then
+                funTrack.TimePosition = 0.6
+            end
+            task.wait(0.1)
+        end
+    end)
+    coroutine.resume(loopCoroutine)
+end
+
+local function stopFunLoop()
+    if funTrack and funTrack.IsPlaying then
+        funTrack:Stop()
+    end
+    loopCoroutine = nil
+end
+
+RunService.PreRender:Connect(function()
+    if not chrDoingTomfoolery or not chrDoingTomfoolery.Parent or chrDoingTomfoolery ~= lplr.Character then
+        chrDoingTomfoolery = lplr.Character or lplr.CharacterAdded:Wait()
+        
+        local hum = chrDoingTomfoolery:FindFirstChildWhichIsA("Humanoid")
+        if hum then
+            local animator = hum:FindFirstChildOfClass("Animator") or Instance.new("Animator", hum)
+            funTrack = animator:LoadAnimation(funAnm)
+            funTrack:AdjustWeight(20)
+        end
+    end
+    
+    if not funTrack then return end
+    
+    if havingFun then
+        startFunLoop()
+    else
+        stopFunLoop()
+    end
+end)
+
+-- connections
+local currentCustomAnimConnection
+local currentStopForsakenAnimsConnection
+
+local function clearConnections()
+    if currentCustomAnimConnection then
+        currentCustomAnimConnection:Disconnect()
+        currentCustomAnimConnection = nil
+    end
+    if currentStopForsakenAnimsConnection then
+        currentStopForsakenAnimsConnection:Disconnect()
+        currentStopForsakenAnimsConnection = nil
+    end
+end
+
+local function playAnimation(hum, id, weight, speed)
+    for _, track in pairs(hum:GetPlayingAnimationTracks()) do
+        if track.Animation.AnimationId == id then
+            track:AdjustSpeed(speed or 1)
+            return track
+        else
+            for _, category in pairs(AnimationIds) do
+                for _, idb in pairs(category) do
+                    if track.Animation.AnimationId == idb then 
+                        track:Stop(0.35)
+                    end
+                end
+            end
+        end
+    end
+    local anim = Instance.new("Animation")
+    anim.Name = "hub67anm"
+    anim.AnimationId = id
+    local track = hum:LoadAnimation(anim)
+    track:AdjustWeight(weight or 10)
+    track:Play(0.35)
+    if speed then track:AdjustSpeed(speed) end
+    return track
+end
+
+local function setupCharacter(chr)
+    clearConnections()
+    local hum = chr:WaitForChild("Humanoid")
+    
+    if not yesCustomAnims then
+        if chr:FindFirstChild("Animate") then chr.Animate.Enabled = true end
+        return
+    end
+    
+    if chr:FindFirstChild("Animate") then chr.Animate.Enabled = false end
+    
+    currentCustomAnimConnection = hum.AnimationPlayed:Connect(function(tr)
+        if not yesCustomAnims then return end
+        if tr.Animation.Name == "hub67anm" then return end
+        for _, category in pairs(AnimationIds) do
+            for _, id in pairs(category) do
+                if tr.Animation.AnimationId == id then
+                    tr:Stop()
+                    return
+                end
+            end
+        end
+    end)
+    
+    currentStopForsakenAnimsConnection = hum.Running:Connect(function(spd)
+        if not yesCustomAnims then return end
+        local sprinting = chr:FindFirstChild("SpeedMultipliers")
+            and chr.SpeedMultipliers:FindFirstChild("Sprinting")
+            and chr.SpeedMultipliers.Sprinting.Value >= 1.3125
+        
+        if spd > 0.01 then
+            local idToPlay = sprinting and (AnimationIds.Run[SelectedAnimations.Run] or AnimationIds.Run.Survivor)
+                or (AnimationIds.Walk[SelectedAnimations.Walk] or AnimationIds.Walk.Survivor)
+            playAnimation(hum, idToPlay, 10, (spd) / (sprinting and 26 or 12))
+        else
+            local chosenName = SelectedAnimations.Idle
+            local idToPlay = AnimationIds.Idle[chosenName] or AnimationIds.Idle.Survivor
+            playAnimation(hum, idToPlay, 9, 1)
+        end
+    end)
+end
+
+if lplr.Character then setupCharacter(lplr.Character) end
+lplr.CharacterAdded:Connect(setupCharacter)
+
+AnimationsTab:CreateToggle({
+    Name = "Toggle Custom Animations",
+    CurrentValue = false,
+    Flag = "CustomAnimsToggle",
+    Callback = function(v)
+        yesCustomAnims = v
+        if lplr.Character then
+            if v then
+                setupCharacter(lplr.Character)
+            else
+                clearConnections()
+                if lplr.Character:FindFirstChild("Animate") then
+                    lplr.Character.Animate.Enabled = true
+                end
+                local hum = lplr.Character:FindFirstChildWhichIsA("Humanoid")
+                if hum then
+                    for _, t in pairs(hum:GetPlayingAnimationTracks()) do
+                        if t.Animation and t.Animation.Name == "hub67anm" then
+                            t:Stop(0.25)
+                        end
+                    end
+                end
+            end
+        end
+    end
+})
+
+-- dropdowns
 local function CreateAnimationDropdown(animType)
     AnimationsTab:CreateDropdown({
         Name = "Target " .. animType .. " Animation",
@@ -174,13 +344,14 @@ AdvantagesTab:CreateToggle({
 })
 AdvantagesTab:CreateSlider({
     Name = "Auto Generator Interval",
-    Range = {1.75, 60},
+    Range = {0.5, 60},
     Increment = 0.05,
     Suffix = "interval",
     CurrentValue = 2.5,
     Flag = "AutomaticGeneratorInterval",
     Callback = function(v) autogendelay = v end
 })
+AdvantagesTab:CreateLabel("Using an interval below 1.75 may get you banned/kicked!!", "message-square-warning", Color3.new(1, 1, 0), false)
 
 AdvantagesTab:CreateSection("ESP")
 local espToggleyeah = AdvantagesTab:CreateToggle({
@@ -223,128 +394,59 @@ AdvantagesTab:CreateSlider({
     Callback = function(num) highlightTransparency = num end
 })
 
-local lplr = game.Players.LocalPlayer
-local RunService = game:GetService("RunService")
-
 RunService.PreSimulation:Connect(function()
     if not senseCanLoad then
         espToggleyeah:Set(false)
     end
 end)
 
--- beating
-local funAnm = Instance.new("Animation")
-funAnm.AnimationId = "rbxassetid://72042024"
 
-local funTrack
-local chrDoingTomfoolery
-local loopCoroutine
 
-local function startFunLoop()
-    if loopCoroutine and coroutine.status(loopCoroutine) ~= "dead" then
-        return
-    end
+FunTab:CreateButton({
+	Name = "Yourself Skin (visual)",
+	Callback = function()
+		local chr = lplr.Character
+		if not chr then return end
+		
+		local bc = chr:FindFirstChild("Body Colors", true)
+		
+		for _, v in pairs(chr:GetDescendants()) do
+			if v:IsA("Accessory") or v:IsA("Hat") or v:IsA("Clothing") then
+				v:Destroy()
+			end
+		end
+		
+		local avatar = game.Players:GetCharacterAppearanceAsync(lplr.UserId)
+		local face = game.Players:GetHumanoidDescriptionFromUserId(lplr.UserId).Face
+		if face ~= 0 then
+		    local expression = chr:FindFirstChild("ExpressionHolder")
+		    if expression then
+		        expression:Destroy()
+		    end
+		    local fdc = Instance.new("Decal")
+		    fdc.Texture = "rbxassetid://" .. face
+		    fdc.Parent = chr.Head
+		end
+		
+		for _, v in pairs(avatar:GetChildren()) do
+			if v:IsA("Accessory") or v:IsA("Hat") or v:IsA("Clothing") then
+				v.Parent = chr
+			end
+		end
+		
+		local avabc = avatar:FindFirstChild("Body Colors", true)
+		if bc and avabc then
+			bc.HeadColor3 = avabc.HeadColor3
+			bc.TorsoColor3 = avabc.TorsoColor3
+			bc.LeftArmColor3 = avabc.LeftArmColor3
+			bc.RightArmColor3 = avabc.RightArmColor3
+			bc.LeftLegColor3 = avabc.LeftLegColor3
+			bc.RightLegColor3 = avabc.RightLegColor3
+		end
+	end
+})
 
-    loopCoroutine = coroutine.create(function()
-        while havingFun and funTrack do
-            funTrack:Play()
-            funTrack:AdjustSpeed(0.65)
-            funTrack:AdjustWeight(20)
-            funTrack.TimePosition = 0.6
-            task.wait(0.1)
-            while funTrack and funTrack.IsPlaying and funTrack.TimePosition < 0.65 do
-                task.wait(0.1)
-            end
-            if funTrack and funTrack.IsPlaying then
-                funTrack.TimePosition = 0.6
-            end
-            task.wait(0.1)
-        end
-    end)
-    coroutine.resume(loopCoroutine)
-end
 
-local function stopFunLoop()
-    if funTrack and funTrack.IsPlaying then
-        funTrack:Stop()
-    end
-    loopCoroutine = nil
-end
-
-RunService.PreRender:Connect(function()
-    if not chrDoingTomfoolery or not chrDoingTomfoolery.Parent or chrDoingTomfoolery ~= lplr.Character then
-        chrDoingTomfoolery = lplr.Character or lplr.CharacterAdded:Wait()
-        
-        local hum = chrDoingTomfoolery:FindFirstChildWhichIsA("Humanoid")
-        if hum then
-            local animator = hum:FindFirstChildOfClass("Animator") or Instance.new("Animator", hum)
-            funTrack = animator:LoadAnimation(funAnm)
-            funTrack:AdjustWeight(20)
-        end
-    end
-    
-    if not funTrack then return end
-    
-    if havingFun then
-        startFunLoop()
-    else
-        stopFunLoop()
-    end
-end)
-
--- custom anism
-local function playAnimation(hum, id, weight, speed)
-    game:GetService("RunService").PreAnimation:Wait()
-    for _, track in pairs(hum:GetPlayingAnimationTracks()) do
-        if track.Animation.AnimationId == id then
-            track:AdjustSpeed(speed or 1)
-            return track
-        else
-            track:Stop(0.35)
-        end
-    end
-    local anim = Instance.new("Animation")
-    anim.Name = "hub67anm"
-    anim.AnimationId = id
-    local track = hum:LoadAnimation(anim)
-    track:AdjustWeight(weight or 10)
-    track:Play(0.35)
-    if speed then track:AdjustSpeed(speed) end
-    return track
-end
-
-local function setupCharacter(chr)
-    local hum = chr:WaitForChild("Humanoid")
-    hum.AnimationPlayed:Connect(function(tr)
-        if tr.Animation.Name ~= "hub67anm" then
-            if tr.Animation.AnimationId == AnimationIds.Walk.Survivor or
-                tr.Animation.AnimationId == AnimationIds.Run.Survivor or
-                tr.Animation.AnimationId == AnimationIds.Idle.Survivor
-                then
-                tr:Stop()
-            end
-        end
-    end)
-    
-    hum.Running:Connect(function(spd)
-        local additiveSpd = not speedhx and 0 or speedamnt * 10
-        local sprinting = chr:FindFirstChild("SpeedMultipliers")
-            and chr.SpeedMultipliers:FindFirstChild("Sprinting")
-            and chr.SpeedMultipliers.Sprinting.Value >= 1.3125
-        if spd > 0.01 then
-            if sprinting then
-                playAnimation(hum, AnimationIds.Run[SelectedAnimations.Run] or AnimationIds.Run.Survivor, 10, (spd + additiveSpd) / 26)
-            else
-                playAnimation(hum, AnimationIds.Walk[SelectedAnimations.Walk] or AnimationIds.Walk.Survivor, 10, (spd + additiveSpd) / 12)
-            end
-        else
-            playAnimation(hum, AnimationIds.Idle[SelectedAnimations.Idle] or AnimationIds.Idle.Survivor, 9, 1)
-        end
-    end)
-end
-
-if lplr.Character then setupCharacter(lplr.Character) end
-lplr.CharacterAdded:Connect(setupCharacter)
 
 -- speed hx
 game:GetService("RunService").PreSimulation:Connect(function()
@@ -420,9 +522,9 @@ local function setupESP(teamType, color)
     settings.healthBar = true
     settings.healthText = true
     settings.box = true
-    settings.boxColor = color
+    settings.boxColor = {color,1}
     settings.tracer = true
-    settings.tracerColor = color
+    settings.tracerColor = {color,1}
 end
 
 setupESP("enemy", espKillerClr)
