@@ -88,12 +88,13 @@ local havingFun = false
 local lplr = game.Players.LocalPlayer
 local RunService = game:GetService("RunService")
 
-AnimationsTab:CreateToggle({
-    Name = "Jerking",
-    CurrentValue = false,
-    Flag = "HavingFunAnimationToggle",
-    Callback = function(v) havingFun = v end
-})
+--@Origami told me to (he distributes my scripts)
+--AnimationsTab:CreateToggle({
+--    Name = "Jerking",
+--    CurrentValue = false,
+--    Flag = "HavingFunAnimationToggle",
+--    Callback = function(v) havingFun = v end
+--})
 
 -- beating
 local funAnm = Instance.new("Animation")
@@ -486,6 +487,12 @@ FunTab:CreateButton({
 			end
 		end
 		
+		for _, v in pairs(avatar:GetChildren()) do
+		    if v:IsA("Clothing") then
+		        v.Parent = chr
+		    end
+		end
+	    
 		local avabc = avatar:FindFirstChild("Body Colors", true)
 		if bc and avabc then
 			bc.HeadColor3 = avabc.HeadColor3

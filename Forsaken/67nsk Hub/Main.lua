@@ -487,6 +487,12 @@ FunTab:CreateButton({
 			end
 		end
 		
+		for _, v in pairs(avatar:GetChildren()) do
+		    if v:IsA("Clothing") then
+		        v.Parent = chr
+		    end
+		end
+	    
 		local avabc = avatar:FindFirstChild("Body Colors", true)
 		if bc and avabc then
 			bc.HeadColor3 = avabc.HeadColor3
