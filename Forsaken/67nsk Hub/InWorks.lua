@@ -52,13 +52,26 @@ local AnimationIds = {
     },
 }
 
+local theme = getgenv().NSKTheme
+local ActualTheme = nil
+if theme then
+    local baseUrl = "https://raw.githubusercontent.com/scriptrblxs/PyyScripts/refs/heads/main/assets/67nskSkins/"
+    local isHttp = string.find(theme, "https://") or string.find(theme, "https://")
+    if not isHttp then
+        local url = baseUrl .. theme
+        actualTheme = loadstring(game:HttpGet(url))()
+    else
+        acualTheme = loadstring(game:HttpGet(url))()
+    end
+end
+
 local Window = Rayfield:CreateWindow({
     Name = "67nsk",
     Icon = 0,
     LoadingTitle = "67nsk le sigmabroy",
     LoadingSubtitle = "by aerialasf",
     ShowText = "67",
-    Theme = "Amethyst",
+    Theme = actualTheme or "Amethyst",
     ToggleUIKeybind = Enum.KeyCode.F5,
     DisableRayfieldPrompts = true,
     ConfigurationSaving = {
@@ -503,6 +516,10 @@ FunTab:CreateButton({
 		    bc.RightLegColor3 = avabc.RightLegColor3
 		end
 	end
+})
+FunTab:CreateParagraph({
+    Title = "Warning",
+    Content = "Yourself will only work if you are using default skin or a skin that doesn't use 3D clothes! It may load a bit slow if you have bad internet. If it doesn't work, press again!"
 })
 
 
