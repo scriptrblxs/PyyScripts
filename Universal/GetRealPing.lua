@@ -2,7 +2,7 @@
 -- open-source feel free to skid i guess
 -- its literally free to use anyways
 
-local lplr = Players.LocalPlayer
+local lplr = game.Players.LocalPlayer
 
 local defer = 0.003
 task.spawn(function()
