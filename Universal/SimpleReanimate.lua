@@ -24,14 +24,21 @@ function lib:new(self)
     local torso = chr:WaitForChild("Torso")
     local hrp = chr:WaitForChild("HumanoidRootPart")
     
-    torso:BreakJoints()
+    for _, motor in ipairs(torso:GetChildren()) do
+        if motor:IsA("Motor") then
+            if motor.Name ~= "Neck" then
+                motor:Destroy()
+            else
+                motor.Enabled = false
+            end
+        end
+    end
     hrp:BreakJoints()
 
     hum:ChangeState(Enum.HumanoidStateType.Running)
     
     for _, p in ipairs(chr:GetChildren()) do
         if p:IsA("BasePart") and p ~= hrp then
-            p.CanCollide = true
             local att = Instance.new("Attachment", p)
             att.Name = "SRAttachment"
             
