@@ -33,7 +33,7 @@ function lib:new(self)
             end
         end
     end
-    hrp:BreakJoints()
+    hrp.RootJoint.Enabled = false
 
     hum:ChangeState(Enum.HumanoidStateType.Running)
     
