@@ -26,6 +26,8 @@ function lib:new(self)
     
     torso:BreakJoints()
     hrp:BreakJoints()
+
+    hum:ChangeState(Enum.HumanoidStateType.Running)
     
     for _, p in ipairs(chr:GetChildren()) do
         if p:IsA("BasePart") and p ~= hrp then
@@ -34,14 +36,14 @@ function lib:new(self)
             
             local ap = Instance.new("AlignPosition", p)
             ap.Mode = Enum.PositionAlignmentMode.OneAttachment
-            ap.Attachment = att
+            ap.Attachment0 = att
             ap.MaxForce = math.huge
             ap.RigidityEnabled = true
             ap.Responsiveness = 5000
             
             local ao = Instance.new("AlignOrientation", p)
             ao.Mode = Enum.OrientationAlignmentMode.OneAttachment
-            ao.Attachment = att
+            ao.Attachment0 = att
             ao.MaxTorque = math.huge
             ao.MaxAngularVelocity = math.huge
             ao.RigidityEnabled = true
