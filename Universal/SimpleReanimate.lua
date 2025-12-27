@@ -80,3 +80,5 @@ function lib:SetBodyPartCFrame(self, name, cframe)
     
     self.Character[name].CFrame = cframe
 end
+
+return lib
