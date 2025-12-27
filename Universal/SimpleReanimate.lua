@@ -31,6 +31,7 @@ function lib:new(self)
     
     for _, p in ipairs(chr:GetChildren()) do
         if p:IsA("BasePart") and p ~= hrp then
+            p.CanCollide = true
             local att = Instance.new("Attachment", p)
             att.Name = "SRAttachment"
             
