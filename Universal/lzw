@@ -1,0 +1,307 @@
+--!native
+-- Module by 1waffle1 and boatbomber
+-- Optimized and fixed by iiau
+-- Refactored for readability by Gemini
+
+local lzw = {}
+lzw.__index = lzw
+
+-- Default buffer size (8MB)
+local DEFAULT_BUF_SIZE = 8388608 
+
+function lzw.new(bufSize: number?)
+	local self = setmetatable({}, lzw)
+
+	-- Initialize the main buffer
+	self.BUF_SIZE = bufSize or DEFAULT_BUF_SIZE
+	self.buf = buffer.create(self.BUF_SIZE)
+
+	-- Dictionaries for character mapping
+	self.strToLength = {}
+	self.lengthToStr = buffer.create(94) -- base93 storage
+	self.bidirectionalDict = {}
+
+	-- Local references for speed
+	local lengthToStr = self.lengthToStr
+	local strToLength = self.strToLength
+	local bidirectionalDict = self.bidirectionalDict
+
+	-------------------------------------------------------------------------
+	-- 1. POPULATE DICTIONARY (ASCII 32-127)
+	-------------------------------------------------------------------------
+	local length = 0
+	for i = 32, 127 do
+		-- Skip quotes (34) and backslash (92) to avoid string breaking
+		if i ~= 34 and i ~= 92 then
+			local c = string.char(i)
+			
+			strToLength[c] = length
+			bidirectionalDict[length] = c
+			bidirectionalDict[c] = length
+
+			buffer.writeu8(lengthToStr, length, i)
+			length = length + 1
+		end
+	end
+
+	-------------------------------------------------------------------------
+	-- 2. SETUP ESCAPE MAPS
+	-- Handles characters that Roblox strings/scripts don't like
+	-------------------------------------------------------------------------
+	local escapemap_126, escapemap_127 = {}, {}
+	local unescapemap_126, unescapemap_127 = {}, {}
+
+	-- Blacklisted characters: Quotes, Backslash, and control chars 126-180
+	local blacklisted_126 = { 34, 92 }
+	for i = 126, 180 do
+		table.insert(blacklisted_126, i)
+	end
+
+	-- Map 1: 0-31 + special chars -> Mapped to 126
+	for i = 0, 31 + #blacklisted_126 do
+		local b = blacklisted_126[i - 31]
+		local s = i + 32 
+
+		-- Determine the character code (b) and the escaped code (e)
+		local c = b or i
+		local e = s + (s >= 34 and 1 or 0) + (s >= 91 and 1 or 0)
+
+		escapemap_126[c] = e
+		unescapemap_126[string.char(e)] = string.char(c)
+	end
+
+	-- Map 2: High bytes (181+) -> Mapped to 127
+	for i = 1, 255 - 180 do
+		local c = i + 180
+		local s = i + 34
+		local e = s + (s >= 92 and 1 or 0)
+
+		escapemap_127[c] = e
+		unescapemap_127[string.char(e)] = string.char(c)
+	end
+
+	-------------------------------------------------------------------------
+	-- 3. HELPER FUNCTIONS
+	-------------------------------------------------------------------------
+
+	-- Escapes a string so it is safe to save in Roblox attributes/scripts
+	local function escape(s: string)
+		local len = #s
+		local refbuf = buffer.fromstring(s)
+		local newbuf = buffer.create(len * 2) -- Allocate double size for safety
+
+		local c = 1 -- Current position
+		local bufcursor = 0
+		
+		-- Find next special character
+		local f = string.find(s, '[%c"\\\126-\255]') 
+
+		while f do
+			-- Copy the safe chunk before the special character
+			if c < f then
+				buffer.copy(newbuf, bufcursor, refbuf, c - 1, f - c)
+				bufcursor += f - c
+				c = f
+			end
+
+			-- Read the problematic byte
+			local byte = buffer.readu8(refbuf, f - 1)
+			
+			-- Escape it using either map 126 or 127
+			if byte >= 181 then
+				local e = escapemap_127[byte]
+				buffer.writeu8(newbuf, bufcursor, 127)
+				buffer.writeu8(newbuf, bufcursor + 1, e)
+			else
+				local e = escapemap_126[byte]
+				buffer.writeu8(newbuf, bufcursor, 126)
+				buffer.writeu8(newbuf, bufcursor + 1, e)
+			end
+
+			c += 1
+			bufcursor += 2
+			f = string.find(s, '[%c"\\\126-\255]', f + 1)
+		end
+
+		-- Copy remaining safe text
+		if c <= len then
+			buffer.copy(newbuf, bufcursor, refbuf, c - 1, len - c + 1)
+			bufcursor += len - c + 1
+		end
+
+		return newbuf, bufcursor
+	end
+
+	-- Reverses the escape process
+	local function unescape(s: string)
+		local s_127 = string.gsub(s, "\127(.)", function(e)
+			return unescapemap_127[e]
+		end)
+		
+		return string.gsub(s_127, "\126(.)", function(e)
+			return unescapemap_126[e]
+		end)
+	end
+
+	-- Base93 Decoding Cache
+	local b10Cache = {}
+
+	-- Converts Base93 string back to a number
+	local function tobase10(value: string): number
+		local n = b10Cache[value]
+		if n then return n end
+
+		n = 0
+		for i = 1, #value do
+			local char = string.sub(value, -i, -i)
+			local val = bidirectionalDict[char]
+			if val then
+				n = n + (93 ^ (i - 1)) * val
+			end
+		end
+
+		b10Cache[value] = n
+		return n
+	end
+
+	-- Export helpers to self
+	self.escape = escape
+	self.unescape = unescape
+	self.tobase10 = tobase10
+
+	return self
+end
+
+-------------------------------------------------------------------------
+-- COMPRESS
+-- Implements LZW compression algorithm
+-------------------------------------------------------------------------
+function lzw:compress(text: string)
+	assert(type(text) == "string", "bad argument #1 to 'compress' (string expected, got " .. typeof(text) .. ")")
+
+	local buf, len = self.escape(text)
+	local dictionaryCopy = table.clone(self.strToLength)
+	
+	local sequence = self.buf
+	local size = 93
+	local width = 1
+	local spans = {}
+	local span = 0
+	
+	local ptrA = 0
+	local ptrB = 1
+	local key = ""
+	local cursor = 0
+	local lengthToStr = self.lengthToStr
+	local depth
+
+	-- Internal helper to write a number as Base93
+	local function writeasbase93(n: number)
+		local sz = 0
+		repeat
+			local remainder = n % 93
+			buffer.copy(sequence, cursor + depth - 1 - sz, lengthToStr, remainder, 1)
+			n = (n - remainder) / 93
+			sz += 1
+		until n == 0
+	end
+
+	-- Process a dictionary key match
+	local function listkey(k: string)
+		local n = dictionaryCopy[k]
+		
+		-- Calculate depth (how many bytes needed for this number)
+		depth = n == 0 and 1 or math.ceil(math.log(n + 1, 93))
+		
+		-- If depth increases, we record a span break
+		if depth > width then
+			spans[width] = span
+			width = depth
+			span = 0
+		end
+
+		-- Padding
+		for _ = 1, width - depth do
+			buffer.writeu8(sequence, cursor, 32) -- Space character
+			cursor += 1
+		end
+		
+		writeasbase93(n)
+		cursor += depth
+		span += 1
+	end
+
+	-- Main LZW Loop
+	while ptrB <= len do
+		local new = buffer.readstring(buf, ptrA, ptrB - ptrA)
+
+		if dictionaryCopy[new] then
+			key = new
+			ptrB += 1
+		else
+			listkey(key)
+			ptrA = ptrB - 1
+			size += 1
+			dictionaryCopy[new] = size
+		end
+	end
+	
+	-- Process the final key
+	listkey(key)
+	spans[width] = span
+
+	return table.concat(spans, ",") .. "|" .. buffer.readstring(sequence, 0, cursor)
+end
+
+-------------------------------------------------------------------------
+-- DECOMPRESS
+-- Reverses LZW compression
+-------------------------------------------------------------------------
+function lzw:decompress(text: string)
+	assert(type(text) == "string", "bad argument #1 to 'decompress' (string expected, got " .. typeof(text) .. ")")
+
+	local dictionaryCopy = table.clone(self.bidirectionalDict)
+	local tobase10 = self.tobase10
+	
+	-- Split format: "spans|content"
+	local spans, content = string.match(text, "(.-)|(.*)")
+	local sequence = {}
+	local groups = {}
+	local start = 1
+
+	-- Reconstruct groups based on span lengths
+	for span in string.gmatch(spans, "%d+") do
+		local width = #groups + 1
+		local segmentLen = span * width
+		groups[width] = string.sub(content, start, start + segmentLen - 1)
+		start = start + segmentLen
+	end
+
+	local previous
+
+	-- Iterate through grouped data
+	for width, group in ipairs(groups) do
+		for value in string.gmatch(group, string.rep(".", width)) do
+			local entry = dictionaryCopy[tobase10(value)]
+			
+			if previous then
+				if entry then
+					table.insert(dictionaryCopy, previous .. string.sub(entry, 1, 1))
+				else
+					-- Special LZW case: cScSc
+					entry = previous .. string.sub(previous, 1, 1)
+					table.insert(dictionaryCopy, entry)
+				end
+				table.insert(sequence, entry)
+			else
+				sequence[1] = entry
+			end
+			
+			previous = entry
+		end
+	end
+
+	return self.unescape(table.concat(sequence))
+end
+
+return lzw
