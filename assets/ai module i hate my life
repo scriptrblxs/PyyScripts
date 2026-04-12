@@ -1,0 +1,198 @@
+local HttpService = game:GetService("HttpService")
+local TweenService = game:GetService("TweenService")
+
+-------------------------------------------------------------------------------
+-- 1. COMPRESSOR MODULE (Integrated LZW)
+-------------------------------------------------------------------------------
+local lzw = {}
+lzw.new = function()
+    local self = {}
+    self.strToLength = {}
+    self.bidirectionalDict = {}
+    self.lengthToStr = buffer.create(94)
+
+    local length = 0
+    for i = 32, 127 do
+        if i ~= 34 and i ~= 92 then
+            local c = string.char(i)
+            self.strToLength[c] = length
+            self.bidirectionalDict[length] = c
+            self.bidirectionalDict[c] = length
+            buffer.writeu8(self.lengthToStr, length, i)
+            length = length + 1
+        end
+    end
+
+    local escapemap_126, escapemap_127 = {}, {}
+    local unescapemap_126, unescapemap_127 = {}, {}
+    local blacklisted_126 = {34, 92}
+    for i = 126, 180 do table.insert(blacklisted_126, i) end
+
+    for i = 0, 31 + #blacklisted_126 do
+        local b = blacklisted_126[i - 31]
+        local s = i + 32
+        local c = b or i
+        local e = s + (s >= 34 and 1 or 0) + (s >= 91 and 1 or 0)
+        escapemap_126[c] = e
+        unescapemap_126[string.char(e)] = string.char(c)
+    end
+
+    for i = 1, 255 - 180 do
+        local c = i + 180
+        local s = i + 34
+        local e = s + (s >= 92 and 1 or 0)
+        escapemap_127[c] = e
+        unescapemap_127[string.char(e)] = string.char(c)
+    end
+
+    function self.unescape(s)
+        return string.gsub(string.gsub(s, "\127(.)", function(e) return unescapemap_127[e] end), "\126(.)", function(e) return unescapemap_126[e] end)
+    end
+
+    function self.tobase10(value)
+        local n = 0
+        for i = 1, #value do
+            n = n + math.pow(93, i - 1) * self.bidirectionalDict[string.sub(value, -i, -i)]
+        end
+        return n
+    end
+
+    function self.decompress(text)
+        local dict = table.clone(self.bidirectionalDict)
+        local sequence, spans, content = {}, string.match(text, "(.-)|(.*)")
+        local groups, start = {}, 1
+        for span in string.gmatch(spans, "%d+") do
+            local width = #groups + 1
+            groups[width] = string.sub(content, start, start + span * width - 1)
+            start = start + span * width
+        end
+        local previous
+        for width, group in ipairs(groups) do
+            for value in string.gmatch(group, string.rep(".", width)) do
+                local entry = dict[self.tobase10(value)]
+                if previous then
+                    if entry then table.insert(dict, previous .. string.sub(entry, 1, 1))
+                    else entry = previous .. string.sub(previous, 1, 1); table.insert(dict, entry) end
+                    table.insert(sequence, entry)
+                else sequence[1] = entry end
+                previous = entry
+            end
+        end
+        return self.unescape(table.concat(sequence))
+    end
+    return self
+end
+
+local Compressor = lzw.new()
+
+-------------------------------------------------------------------------------
+-- 2. CORE FUNCTIONS
+-------------------------------------------------------------------------------
+
+-- Function A: Takes the Short Code, fetches from Replit, and returns the RAW compressed string
+local function GetCompressedJsonFromCode(code: string)
+    local url = string.format('https://rig-shift--SickGui.replit.app/api/code/%s', code)
+    local success, result = pcall(function()
+        return game:HttpGet(url)
+    end)
+    if success then return result else warn("Fetch failed:", result) return nil end
+end
+
+-- Function B: Takes the compressed string and returns the Lua Table (decoded)
+local function DecompressToTable(compressedData: string)
+    local decompressed = Compressor.decompress(compressedData)
+    return HttpService:JSONDecode(decompressed)
+end
+
+-- Function C: The Animation Factory (KFS Generator)
+local function CreateKeyframeSequence(Arguments)
+    local Keyframes = {}
+    local KFS = Instance.new('KeyframeSequence')
+    KFS.Name = Arguments.Name or 'ImportedAnim'
+    KFS.Loop = Arguments.Loop or false
+
+    local function AddPose(Pose, Frame)
+        if not Keyframes[Frame] then Keyframes[Frame] = {} end
+        Keyframes[Frame][Pose.Name] = Pose
+    end
+
+    local function BuildTree(Poses)
+        local function Traverse(Node)
+            local Pose = Poses[Node.Name]
+            for _, Child in ipairs(Node.Children) do
+                local ChildPose = Traverse(Child)
+                if ChildPose then
+                    if not Pose then
+                        Pose = Instance.new("Pose")
+                        Pose.Name = Node.Name
+                        Pose.Weight = 0
+                        local Null = Instance.new("IntValue", Pose); Null.Name = "Null"
+                    end
+                    ChildPose.Parent = Pose
+                end
+            end
+            return Pose
+        end
+        return Traverse(Arguments.Hierarchy)
+    end
+
+    for Name, Track in pairs(Arguments.Tracks) do
+        for i, KF in ipairs(Track.Keyframes) do
+            local P = Instance.new('Pose')
+            P.Name, P.Weight, P.CFrame = Name, 1, KF.Value
+            P.EasingStyle = KF.Easing and Enum.PoseEasingStyle.Linear or Enum.PoseEasingStyle.Constant
+            P.EasingDirection = Enum.PoseEasingDirection.In
+            AddPose(P, KF.Frame)
+
+            -- Handle Baked Easing (if not linear/constant)
+            if KF.Easing and KF.Easing.Style ~= 'Linear' and i < #Track.Keyframes then
+                local Start, End = KF.Frame / Arguments.FPS, Track.Keyframes[i+1].Frame / Arguments.FPS
+                local Dur = End - Start
+                local Steps = math.round(Dur * 60)
+                for s = 1, Steps - 1 do
+                    local t = s / Steps
+                    local Alpha = TweenService:GetValue(t, KF.Easing.Style, KF.Easing.Direction)
+                    local IP = Instance.new("Pose")
+                    IP.CFrame = KF.Value:Lerp(Track.Keyframes[i+1].Value, Alpha)
+                    IP.Weight, IP.Name = 1, Name
+                    local Null = Instance.new("IntValue", IP); Null.Name = "Null"
+                    AddPose(IP, (Start + t * Dur) * Arguments.FPS)
+                end
+            end
+        end
+    end
+
+    for Frame, Poses in pairs(Keyframes) do
+        local KFObj = Instance.new('Keyframe')
+        KFObj.Time = Frame / Arguments.FPS
+        local Root = BuildTree(Poses)
+        if Root then Root.Parent = KFObj end
+        KFS:AddKeyframe(KFObj)
+    end
+    return KFS
+end
+
+-------------------------------------------------------------------------------
+-- 3. EXAMPLE USAGE
+-------------------------------------------------------------------------------
+--[[
+    local code = "XYZ123" -- Your short code
+    local raw = GetCompressedJsonFromCode(code)
+    if raw then
+        local data = DecompressToTable(raw)
+        
+        -- If data contains multiple objects, you'd loop through them here.
+        -- Assuming 'data.Objects[1]' is a rig track and 'data.Hierarchy' exists:
+        
+        local myKFS = CreateKeyframeSequence({
+            Name = data.Name,
+            FPS = data.FPS,
+            Hierarchy = data.Objects[1].Hierarchy, -- This depends on your specific JSON structure
+            Tracks = data.Objects[1].Tracks
+        })
+        
+        myKFS.Parent = workspace
+    end
+]]
+
+return {GetCompressedJsonFromCode=GetCompressedJsonFromCode,DecompressToTable=DecompressToTable,CreateKeyframeSequence=CreateKeyframeSequence}
