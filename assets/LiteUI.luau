@@ -67,7 +67,7 @@ end
 
 function Element:Tween(goal, info, fn)
     local tw = game:GetService("TweenService"):Create(self.Instance, info, goal)
-    if tw then
+    if tw and fn then
         tw.Completed:Once(function(...)
             fn(self, ...)
         end)
