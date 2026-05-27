@@ -6,8 +6,12 @@ local HttpService = game:GetService("HttpService")
 
 local LocalPlayer = Players.LocalPlayer
 
+-- Load LiteUI
 local LiteUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/NicelyTinned/lite-ui/refs/heads/main/src/init.luau"))()
 
+-- ==========================================
+-- 1. FILE SYSTEM & CONFIGURATION MANAGER
+-- ==========================================
 local FOLDER_NAME = "Hub63"
 local FILE_PATH = FOLDER_NAME .. "/options.json"
 
@@ -16,6 +20,7 @@ local options = {
     DefaultSkinUsername = ""
 }
 
+-- Helper function to save JSON cleanly with nice spacing/indentation
 local function saveBeautifiedOptions()
     local jsonTemplate = "{\n" ..
         '    "ShowSkin": %s,\n' ..
@@ -29,6 +34,7 @@ local function saveBeautifiedOptions()
     end)
 end
 
+-- Initialize folders and check files
 if not isfolder(FOLDER_NAME) then
     makefolder(FOLDER_NAME)
 end
@@ -38,19 +44,23 @@ if isfile(FILE_PATH) then
     if readSuccess then
         local decodeSuccess, parsedJson = pcall(function() return HttpService:JSONDecode(rawContent) end)
         if decodeSuccess and type(parsedJson) == "table" then
+            -- Fallback checks to ensure structural validity
             if parsedJson.ShowSkin ~= nil then options.ShowSkin = parsedJson.ShowSkin end
             if parsedJson.DefaultSkinUsername ~= nil then options.DefaultSkinUsername = parsedJson.DefaultSkinUsername end
         else
-            saveBeautifiedOptions()
+            saveBeautifiedOptions() -- Reset corrupt file to defaults
         end
     end
 else
-    saveBeautifiedOptions()
+    saveBeautifiedOptions() -- Generate fresh template file if missing
 end
 
+-- ==========================================
+-- 2. CORE ENCODER, DECODER, & GLOBAL SPACE
+-- ==========================================
 local ALL_TRACKED_MESHES = {} 
 local renderConnection = nil
-_G.CurrentSkinId = 123826306477155
+_G.CurrentSkinId = 123826306477155 -- Default fallback skin
 
 local PREFIX_REQUEST   = "TehEpikDuckIsComing" 
 local PREFIX_BROADCAST = "BuilderManMan"       
@@ -92,6 +102,7 @@ local function DecodeUserId(camelStr)
 end
 
 local function BroadcastSkinId(targetSkinId)
+    -- Respect the ShowSkin option block before handling network overhead
     if not options.ShowSkin then return end
     
     local payload = PREFIX_BROADCAST .. EncodeUserId(targetSkinId)
@@ -101,6 +112,9 @@ local function BroadcastSkinId(targetSkinId)
     end
 end
 
+-- ==========================================
+-- 3. AVATAR LOADING & PHYSICS ENTRIES
+-- ==========================================
 local function weldCustomAccessory(character, accessory)
     local handle = accessory:FindFirstChild("Handle")
     if not handle then return end
@@ -126,6 +140,7 @@ end
 local function loadPlayerAvatar(userId, character)
     if not character then return end
 
+    -- Clean out previous custom structures
     for _, obj in pairs(character:GetChildren()) do
         if obj.Name:match("^CustomMesh_") or obj:IsA("Accessory") or obj:IsA("Shirt") or obj:IsA("Pants") or obj:IsA("BodyColors") then
             obj:Destroy()
@@ -272,7 +287,11 @@ renderConnection = RunService.PreRender:Connect(function(dt)
     end
 end)
 
+-- ==========================================
+-- 4. INTERCEPTOR & HANDSHAKE ROUTER
+-- ==========================================
 TextChatService.OnIncomingMessage = function(message)
+    -- Return early if configurations have disabled custom skins completely
     if not options.ShowSkin then return end
 
     local overrideProperties = Instance.new("TextChatMessageProperties")
@@ -305,6 +324,9 @@ TextChatService.OnIncomingMessage = function(message)
     end
 end
 
+-- ==========================================
+-- 5. UI INTERFACE & SYSTEM HOOKS
+-- ==========================================
 local isMinimized = false
 local defaultSize = UDim2.new(0.9, 0, 0, 160)
 local minSize = UDim2.new(0, 45, 0, 45)
@@ -375,7 +397,7 @@ local ScreenGui = LiteUI.new("ScreenGui", {
                             Position = UDim2.new(0, 15, 0, 5),
                             BackgroundColor3 = Color3.fromRGB(45, 45, 50),
                             PlaceholderText = "Enter Username",
-                            Text = options.DefaultSkinUsername,
+                            Text = options.DefaultSkinUsername, -- Autofill from stored config
                             TextColor3 = Color3.new(1, 1, 1),
                             Font = Enum.Font.Gotham,
                             TextSize = 14,
@@ -412,6 +434,7 @@ local ScreenGui = LiteUI.new("ScreenGui", {
                                             _G.CurrentSkinId = targetId
                                             BroadcastSkinId(targetId)
                                             
+                                            -- Save this username to persistence storage as default
                                             options.DefaultSkinUsername = username
                                             saveBeautifiedOptions()
                                             
@@ -443,7 +466,7 @@ local function initializeDrag(frame)
         end
     end)
     frame.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement Girl input.UserInputType == Enum.UserInputType.Touch then dragInput = input end
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then dragInput = input end
     end)
     UserInputService.InputChanged:Connect(function(input)
         if input == dragInput and dragging then
@@ -456,7 +479,20 @@ end
 local targetMainFrame = game.CoreGui:WaitForChild("Hub63"):WaitForChild("MainFrame")
 initializeDrag(targetMainFrame)
 
+-- ==========================================
+-- 6. STARTUP INITIALIZATION & ROUTINES
+-- ==========================================
+local function RequestAllActiveSkins()
+    if not options.ShowSkin then return end
+    local generalChannel = TextChatService.TextChannels:FindFirstChild("RBXGeneral")
+    if generalChannel then
+        generalChannel:SendAsync(PREFIX_REQUEST)
+    end
+end
+
+-- Process configuration startup settings
 task.spawn(function()
+    -- If a default username was configured in the JSON file, load it immediately on startup
     if options.DefaultSkinUsername ~= "" and options.ShowSkin then
         task.wait()
         local startupSuccess, startupId = pcall(function()
@@ -469,5 +505,6 @@ task.spawn(function()
         end
     end
     
+    -- Prompt server sync query
     RequestAllActiveSkins()
-end)
+end
